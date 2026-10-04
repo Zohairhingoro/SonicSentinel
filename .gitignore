@@ -1,0 +1,71 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# Virtual environment
+venv/
+env/
+.venv/
+ENV/
+
+# Django
+*.sqlite3
+db.sqlite3
+local_settings.py
+/static/
+/media/
+/webapp/media/
+/webapp/staticfiles/
+
+# FastAPI / Uvicorn
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Model artifacts (large binary files - optional, remove lines below to include)
+# ml_service/model/artifacts/*.pkl
+# ml_service/model/artifacts/*.joblib
+
+# Node / TF.js (keep gtm_model tracked)
+node_modules/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+Desktop.ini
+# Large model files (>100MB - exceed GitHub limit)
+*.joblib
+*.pkl
+ml_pipeline/training/results/
+ml_service/model/artifacts/*.joblib
+ml_service/model/artifacts/*.pkl

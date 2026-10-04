@@ -1,0 +1,206 @@
+{% extends "app_base.html" %}
+
+{% block title %}Audit Log & Security Trail - SonicSentinel AI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header banner -->
+    <div
+        class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900/60 border border-slate-800 p-6 rounded-3xl backdrop-blur-xl shadow-xl">
+        <div class="space-y-1">
+            <div
+                class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span>Security & Operations Audit Trail</span>
+            </div>
+            <h1
+                class="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                System Audit Log
+            </h1>
+            <p class="text-xs text-slate-400">Chronological immutable security log of all system actions, user sessions,
+                uploads, and overrides</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <span
+                class="px-3.5 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700/80 text-xs font-semibold text-slate-300">
+                Total Records: <strong class="text-cyan-400">{{ logs_page.paginator.count }}</strong>
+            </span>
+        </div>
+    </div>
+
+    <!-- Filter Bar Card -->
+    <div class="card card-glass p-5">
+        <form method="get" action="{% url 'audit:log_list' %}"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+            <!-- Action filter -->
+            <div class="space-y-1.5">
+                <label for="id_action" class="form-label">Action Type</label>
+                <select name="action" id="id_action" class="form-select text-xs">
+                    <option value="">All Action Types</option>
+                    {% for key, label in action_choices %}
+                    <option value="{{ key }}" {% if selected_action==key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- User filter -->
+            <div class="space-y-1.5">
+                <label for="id_user_id" class="form-label">User</label>
+                <select name="user_id" id="id_user_id" class="form-select text-xs">
+                    <option value="">All Users</option>
+                    {% for u in users %}
+                    <option value="{{ u.id }}" {% if selected_user_id==u.id|stringformat:"s" %}selected{% endif %}>{{
+                        u.username }} ({{ u.role }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Date From filter -->
+            <div class="space-y-1.5">
+                <label for="id_date_from" class="form-label">Date From</label>
+                <input type="date" name="date_from" id="id_date_from" value="{{ selected_date_from }}"
+                    class="form-control text-xs">
+            </div>
+
+            <!-- Date To filter -->
+            <div class="space-y-1.5">
+                <label for="id_date_to" class="form-label">Date To</label>
+                <input type="date" name="date_to" id="id_date_to" value="{{ selected_date_to }}"
+                    class="form-control text-xs">
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex items-center space-x-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-1">
+                    Filter
+                </button>
+                <a href="{% url 'audit:log_list' %}" class="btn btn-secondary btn-sm">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden backdrop-blur-xl shadow-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs text-slate-300">
+                <thead>
+                    <tr
+                        class="bg-slate-950/70 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+                        <th class="py-3.5 px-4">Timestamp</th>
+                        <th class="py-3.5 px-4">Action</th>
+                        <th class="py-3.5 px-4">User</th>
+                        <th class="py-3.5 px-4">Detail Context</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60">
+                    {% for log in logs_page.object_list %}
+                    <tr class="hover:bg-slate-800/40 transition-colors">
+                        <!-- Timestamp -->
+                        <td class="py-3.5 px-4 whitespace-nowrap text-slate-300 font-mono text-[11px]">
+                            {{ log.timestamp|date:"Y-m-d H:i:s" }}
+                        </td>
+
+                        <!-- Action Badge -->
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            {% if log.action == "login" %}
+                            <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">Login</span>
+                            {% elif log.action == "upload" %}
+                            <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Upload</span>
+                            {% elif log.action == "mic_session" %}
+                            <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Mic
+                                Session</span>
+                            {% elif log.action == "prediction" %}
+                            <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">Prediction</span>
+                            {% elif log.action == "alert" %}
+                            <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Alert</span>
+                            {% elif log.action == "review" %}
+                            <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Review</span>
+                            {% elif log.action == "override" %}
+                            <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20">Override</span>
+                            {% elif log.action == "export" %}
+                            <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Export</span>
+                            {% elif log.action == "model_update" %}
+                            <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">Model
+                                Update</span>
+                            {% else %}
+                            <span
+                                class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-700 text-slate-300">{{
+                                log.get_action_display }}</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- User -->
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            {% if log.user %}
+                            <div class="flex flex-col">
+                                <span class="font-medium text-slate-200">{{ log.user.username }}</span>
+                                <span class="text-[10px] text-slate-500 font-mono">{{ log.user.user_id }}</span>
+                            </div>
+                            {% else %}
+                            <span class="text-slate-500 italic">System / Anonymous</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Detail Context -->
+                        <td class="py-3.5 px-4 font-mono text-[11px] text-slate-400 max-w-md truncate">
+                            {% if log.detail %}
+                            {{ log.detail }}
+                            {% else %}
+                            <span class="text-slate-600">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="p-6 text-center">
+                            {% include "components/empty_state.html" with title="No Audit Log Entries" subtitle="No
+                            audit log entries were found matching the selected filter criteria." action_text="Reset
+                            Filters" action_url="/audit/" %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if logs_page.has_other_pages %}
+        <div class="px-6 py-4 bg-slate-950/50 border-t border-slate-800 flex items-center justify-between">
+            <span class="text-xs text-slate-400">
+                Showing page <strong class="text-slate-200">{{ logs_page.number }}</strong> of <strong
+                    class="text-slate-200">{{ logs_page.paginator.num_pages }}</strong>
+            </span>
+            <div class="flex items-center space-x-2">
+                {% if logs_page.has_previous %}
+                <a href="?page={{ logs_page.previous_page_number }}{% if selected_action %}&action={{ selected_action }}{% endif %}{% if selected_user_id %}&user_id={{ selected_user_id }}{% endif %}{% if selected_date_from %}&date_from={{ selected_date_from }}{% endif %}{% if selected_date_to %}&date_to={{ selected_date_to }}{% endif %}"
+                    class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors">
+                    Previous
+                </a>
+                {% endif %}
+
+                {% if logs_page.has_next %}
+                <a href="?page={{ logs_page.next_page_number }}{% if selected_action %}&action={{ selected_action }}{% endif %}{% if selected_user_id %}&user_id={{ selected_user_id }}{% endif %}{% if selected_date_from %}&date_from={{ selected_date_from }}{% endif %}{% if selected_date_to %}&date_to={{ selected_date_to }}{% endif %}"
+                    class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors">
+                    Next
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

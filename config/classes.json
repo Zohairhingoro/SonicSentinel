@@ -1,0 +1,15 @@
+{
+  "categories": [
+    "Machinery Fault",
+    "Glass Breaking",
+    "Alarm or Siren",
+    "Vehicle Horn",
+    "Animal Sound",
+    "Gunshot",
+    "Panic Scream",
+    "Aggression or Violent Conflict",
+    "Person Asking for Help",
+    "Background Noise"
+  ],
+  "unclassifiable_label": "Unknown / Manual Review Required"
+}

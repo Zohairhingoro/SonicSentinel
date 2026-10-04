@@ -1,0 +1,12 @@
+{
+  "supported_formats": ["wav", "mp3", "flac", "ogg", "m4a"],
+  "max_duration_seconds": 30,
+  "min_duration_seconds": 0.5,
+  "target_sample_rate": 22050,
+  "channels": 1,
+  "max_file_size_mb": 20,
+  "window_duration_seconds": 3.0,
+  "window_overlap_seconds": 1.0,
+  "confidence_threshold": 0.70,
+  "top_two_margin_threshold": 0.15
+}

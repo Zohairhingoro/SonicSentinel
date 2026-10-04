@@ -1,0 +1,23 @@
+{# Reusable Token-Driven Button Component Partial #}
+{% if href %}
+<a href="{{ href }}" {% if id %}id="{{ id }}" {% endif %}
+  class="btn btn-{{ variant|default:'primary' }} {% if size %}btn-{{ size }}{% endif %} {{ extra_classes|default:'' }}"
+  {% if onclick %}onclick="{{ onclick }}" {% endif %} {% if aria_label %}aria-label="{{ aria_label }}" {% endif %} {% if
+  target %}target="{{ target }}" {% endif %}>
+  {% if icon %}
+  <span class="btn-icon">{{ icon|safe }}</span>
+  {% endif %}
+  {% if text %}<span>{{ text }}</span>{% endif %}
+</a>
+{% else %}
+<button type="{{ type|default:'button' }}" {% if id %}id="{{ id }}" {% endif %} {% if name %}name="{{ name }}" {% endif
+  %} {% if value %}value="{{ value }}" {% endif %}
+  class="btn btn-{{ variant|default:'primary' }} {% if size %}btn-{{ size }}{% endif %} {{ extra_classes|default:'' }}"
+  {% if disabled %}disabled{% endif %} {% if onclick %}onclick="{{ onclick }}" {% endif %} {% if aria_label
+  %}aria-label="{{ aria_label }}" {% endif %}>
+  {% if icon %}
+  <span class="btn-icon">{{ icon|safe }}</span>
+  {% endif %}
+  {% if text %}<span>{{ text }}</span>{% endif %}
+</button>
+{% endif %}

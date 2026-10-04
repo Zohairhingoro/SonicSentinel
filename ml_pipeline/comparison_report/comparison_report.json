@@ -1,0 +1,264 @@
+{
+  "report_title": "SonicSentinel AI Model Comparison Report",
+  "winning_model": {
+    "name": "XGBoost",
+    "version": "xgb_v1.0",
+    "val_accuracy": 0.468904,
+    "val_macro_f1": 0.39951,
+    "macro_precision": 0.48770227731168536,
+    "macro_recall": 0.41184534326657357,
+    "weighted_f1": 0.4236996632111646,
+    "critical_recalls": {
+      "gunshot": 0.6557377049180327,
+      "glass_breaking": 0.33884297520661155,
+      "panic_scream": 0.19298245614035087,
+      "aggression": 0.03636363636363636,
+      "person_asking_for_help": 0.8636363636363636
+    },
+    "best_hyperparameters": {
+      "n_estimators": 500,
+      "learning_rate": 0.05,
+      "max_depth": 6,
+      "subsample": 0.7,
+      "colsample_bytree": 0.7,
+      "reg_alpha": 0.5,
+      "reg_lambda": 2.0
+    }
+  },
+  "srs_section_4_targets": {
+    "overall_accuracy": {
+      "target": 0.85,
+      "achieved": 0.468904,
+      "passed": false
+    },
+    "macro_f1": {
+      "target": 0.8,
+      "achieved": 0.39951,
+      "passed": false
+    },
+    "critical_recalls": {
+      "gunshot": {
+        "label": "Gunshot",
+        "target": 0.85,
+        "achieved": 0.6557377049180327,
+        "passed": false
+      },
+      "glass_breaking": {
+        "label": "Glass Breaking",
+        "target": 0.85,
+        "achieved": 0.33884297520661155,
+        "passed": false
+      },
+      "panic_scream": {
+        "label": "Panic Scream",
+        "target": 0.85,
+        "achieved": 0.19298245614035087,
+        "passed": false
+      },
+      "aggression": {
+        "label": "Aggression / Violent Conflict",
+        "target": 0.85,
+        "achieved": 0.03636363636363636,
+        "passed": false
+      },
+      "person_asking_for_help": {
+        "label": "Person Asking for Help",
+        "target": 0.85,
+        "achieved": 0.8636363636363636,
+        "passed": true
+      }
+    }
+  },
+  "comparison_table": [
+    {
+      "model_name": "XGBoost",
+      "model_version": "xgb_v1.0",
+      "best_hyperparameters": {
+        "n_estimators": 500,
+        "learning_rate": 0.05,
+        "max_depth": 6,
+        "subsample": 0.7,
+        "colsample_bytree": 0.7,
+        "reg_alpha": 0.5,
+        "reg_lambda": 2.0
+      },
+      "val_accuracy": 0.468904,
+      "train_accuracy": 0.987266,
+      "overfit_gap": 0.518362,
+      "macro_precision": 0.48770227731168536,
+      "macro_recall": 0.41184534326657357,
+      "macro_f1": 0.39951,
+      "weighted_f1": 0.4236996632111646,
+      "training_time_seconds": 63.873,
+      "critical_recalls": {
+        "gunshot": 0.6557377049180327,
+        "glass_breaking": 0.33884297520661155,
+        "panic_scream": 0.19298245614035087,
+        "aggression": 0.03636363636363636,
+        "person_asking_for_help": 0.8636363636363636
+      },
+      "critical_precisions": {
+        "gunshot": 0.47244094488188976,
+        "glass_breaking": 0.5466666666666666,
+        "panic_scream": 0.3142857142857143,
+        "aggression": 0.23529411764705882,
+        "person_asking_for_help": 0.7251908396946565
+      },
+      "critical_f1s": {
+        "gunshot": 0.5491990846681922,
+        "glass_breaking": 0.41836734693877553,
+        "panic_scream": 0.2391304347826087,
+        "aggression": 0.06299212598425197,
+        "person_asking_for_help": 0.7883817427385892
+      },
+      "avg_critical_recall": 0.4175,
+      "critical_pass_count": 1,
+      "srs_accuracy_pass": false,
+      "srs_f1_pass": false,
+      "srs_critical_pass": false,
+      "rank": 1
+    },
+    {
+      "model_name": "Random Forest",
+      "model_version": "rf_v1.0",
+      "best_hyperparameters": {
+        "n_estimators": 300,
+        "max_depth": 30,
+        "min_samples_leaf": 2,
+        "max_features": "sqrt",
+        "class_weight": "balanced"
+      },
+      "val_accuracy": 0.41566,
+      "train_accuracy": 0.991173,
+      "overfit_gap": 0.575513,
+      "macro_precision": 0.381223001981177,
+      "macro_recall": 0.42705842647944586,
+      "macro_f1": 0.379232,
+      "weighted_f1": 0.39023218604783244,
+      "training_time_seconds": 14.557,
+      "critical_recalls": {
+        "gunshot": 0.6557377049180327,
+        "glass_breaking": 0.48760330578512395,
+        "panic_scream": 0.38596491228070173,
+        "aggression": 0.10909090909090909,
+        "person_asking_for_help": 0.9090909090909091
+      },
+      "critical_precisions": {
+        "gunshot": 0.39867109634551495,
+        "glass_breaking": 0.36419753086419754,
+        "panic_scream": 0.3013698630136986,
+        "aggression": 0.17142857142857143,
+        "person_asking_for_help": 0.44642857142857145
+      },
+      "critical_f1s": {
+        "gunshot": 0.49586776859504134,
+        "glass_breaking": 0.4169611307420495,
+        "panic_scream": 0.3384615384615385,
+        "aggression": 0.13333333333333333,
+        "person_asking_for_help": 0.5988023952095808
+      },
+      "avg_critical_recall": 0.5095,
+      "critical_pass_count": 1,
+      "srs_accuracy_pass": false,
+      "srs_f1_pass": false,
+      "srs_critical_pass": false,
+      "rank": 2
+    },
+    {
+      "model_name": "SVM",
+      "model_version": "svm_v1.0",
+      "best_hyperparameters": {
+        "C": 5.0,
+        "kernel": "rbf",
+        "gamma": "scale",
+        "class_weight": "balanced"
+      },
+      "val_accuracy": 0.43132,
+      "train_accuracy": 0.689417,
+      "overfit_gap": 0.258097,
+      "macro_precision": 0.4318199055485638,
+      "macro_recall": 0.36518060564364097,
+      "macro_f1": 0.358159,
+      "weighted_f1": 0.3896881282087862,
+      "training_time_seconds": 70.677,
+      "critical_recalls": {
+        "gunshot": 0.6939890710382514,
+        "glass_breaking": 0.4132231404958678,
+        "panic_scream": 0.12280701754385964,
+        "aggression": 0.0,
+        "person_asking_for_help": 0.509090909090909
+      },
+      "critical_precisions": {
+        "gunshot": 0.4379310344827586,
+        "glass_breaking": 0.5208333333333334,
+        "panic_scream": 0.5384615384615384,
+        "aggression": 0.0,
+        "person_asking_for_help": 0.6829268292682927
+      },
+      "critical_f1s": {
+        "gunshot": 0.5369978858350951,
+        "glass_breaking": 0.4608294930875576,
+        "panic_scream": 0.2,
+        "aggression": 0.0,
+        "person_asking_for_help": 0.5833333333333334
+      },
+      "avg_critical_recall": 0.3478,
+      "critical_pass_count": 0,
+      "srs_accuracy_pass": false,
+      "srs_f1_pass": false,
+      "srs_critical_pass": false,
+      "rank": 3
+    },
+    {
+      "model_name": "CNN",
+      "model_version": "cnn_v1.0",
+      "best_hyperparameters": {
+        "lr": 0.002,
+        "batch_size": 128,
+        "dropout": 0.2,
+        "epochs": 4
+      },
+      "val_accuracy": 0.233557,
+      "train_accuracy": 0.360007,
+      "overfit_gap": 0.12645,
+      "macro_precision": 0.2345236369479471,
+      "macro_recall": 0.2772412075414211,
+      "macro_f1": 0.209401,
+      "weighted_f1": 0.21135884231885896,
+      "training_time_seconds": 204.597,
+      "critical_recalls": {
+        "gunshot": 0.10382513661202186,
+        "glass_breaking": 0.32231404958677684,
+        "panic_scream": 0.7192982456140351,
+        "aggression": 0.03636363636363636,
+        "person_asking_for_help": 0.34545454545454546
+      },
+      "critical_precisions": {
+        "gunshot": 0.20212765957446807,
+        "glass_breaking": 0.21666666666666667,
+        "panic_scream": 0.13804713804713806,
+        "aggression": 0.14814814814814814,
+        "person_asking_for_help": 0.15139442231075698
+      },
+      "critical_f1s": {
+        "gunshot": 0.1371841155234657,
+        "glass_breaking": 0.2591362126245847,
+        "panic_scream": 0.23163841807909605,
+        "aggression": 0.058394160583941604,
+        "person_asking_for_help": 0.21052631578947367
+      },
+      "avg_critical_recall": 0.3055,
+      "critical_pass_count": 0,
+      "srs_accuracy_pass": false,
+      "srs_f1_pass": false,
+      "srs_critical_pass": false,
+      "rank": 4
+    }
+  ],
+  "models_evaluated": [
+    "XGBoost",
+    "Random Forest",
+    "SVM",
+    "CNN"
+  ]
+}

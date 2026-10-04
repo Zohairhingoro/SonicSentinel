@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" class="ss-svg-icon">
+  <defs>
+    <linearGradient id="ss-accent-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C5CFF" />
+      <stop offset="100%" stop-color="#22D3EE" />
+    </linearGradient>
+    <filter id="ss-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  
+      <rect x="4" y="4" width="40" height="40" rx="12" fill="#14141C" stroke="url(#ss-accent-gradient)" stroke-width="1.5" opacity="0.6"/>
+      <circle cx="16" cy="18" r="5" stroke="url(#ss-accent-gradient)" stroke-width="2"/>
+      <circle cx="32" cy="18" r="5" stroke="url(#ss-accent-gradient)" stroke-width="2"/>
+      <path d="M20 21l8 6M28 21l-8 6" stroke="url(#ss-accent-gradient)" stroke-width="2" stroke-linecap="round"/>
+      <rect x="18" y="30" width="12" height="8" rx="3" stroke="url(#ss-accent-gradient)" stroke-width="2" fill="#1C1C27"/>
+      <path d="M24 27v3" stroke="url(#ss-accent-gradient)" stroke-width="2" stroke-linecap="round"/>
+    
+</svg>

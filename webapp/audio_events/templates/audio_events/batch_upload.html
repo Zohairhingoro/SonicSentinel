@@ -1,0 +1,481 @@
+{% extends "app_base.html" %}
+{% load static %}
+
+{% block title %}Batch Audio Upload — SonicSentinel AI{% endblock %}
+{% block page_title %}Audio Ingestion{% endblock %}
+{% block page_subtitle_badge %}
+<span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 border"
+    style="color:var(--color-accent-end);border-color:rgba(139,92,246,0.3);background:rgba(139,92,246,0.07);">
+    Batch Upload
+</span>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-[var(--space-4)] max-w-5xl mx-auto">
+
+    <!-- Header Banner -->
+    <div class="page-header">
+        <div class="page-header-body">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-400 shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="page-header-title">Batch Audio Ingestion</h1>
+                    <p class="page-header-sub">Select or drag multiple audio files. Each clip is independently validated
+                        against signal and security rules.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span
+                    class="text-[10px] font-mono font-bold px-2 py-0.5 border text-violet-300 border-violet-500/30 bg-violet-500/10">WAV</span>
+                <span
+                    class="text-[10px] font-mono font-bold px-2 py-0.5 border text-violet-300 border-violet-500/30 bg-violet-500/10">MP3</span>
+                <span
+                    class="text-[10px] font-mono font-bold px-2 py-0.5 border text-violet-300 border-violet-500/30 bg-violet-500/10">FLAC</span>
+                <span
+                    class="text-[10px] font-mono font-bold px-2 py-0.5 border text-violet-300 border-violet-500/30 bg-violet-500/10">OGG</span>
+                <span
+                    class="text-[10px] font-mono font-bold px-2 py-0.5 border text-violet-300 border-violet-500/30 bg-violet-500/10">M4A</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Django Messages -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="p-4 rounded-2xl border text-sm font-medium flex items-center gap-2.5 shadow-lg
+                {% if message.tags == 'success' %}bg-emerald-950/80 border-emerald-500/50 text-emerald-300
+                {% elif message.tags == 'error' %}bg-rose-950/80 border-rose-500/50 text-rose-300
+                {% else %}bg-slate-800/80 border-slate-700 text-slate-300{% endif %}">
+        {% if message.tags == 'success' %}
+        <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        {% elif message.tags == 'error' %}
+        <svg class="w-5 h-5 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        {% endif %}
+        <span>{{ message }}</span>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- A4 Error State if form validation fails -->
+    {% if form.errors %}
+    <div class="mb-2">
+        {% include "components/error_state.html" with title="Batch Submission Rejected"
+        message=form.audio_files.errors.0|default:"Invalid files submitted." id="batch-error-state" %}
+    </div>
+    {% endif %}
+
+    <!-- Drag-and-Drop Batch Upload Form Card -->
+    <div class="card" id="batch-upload-card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">Select Audio Files for Batch Ingestion</h2>
+                <p class="card-subtitle">Drag multiple audio clips or browse your files</p>
+            </div>
+            <span
+                class="text-xs font-mono font-semibold text-violet-300 bg-violet-500/10 border border-violet-500/30 px-3 py-1 rounded-full">
+                Multi-File Batch Mode
+            </span>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="batch-upload-form" class="mt-4 space-y-5">
+            {% csrf_token %}
+
+            {# Interactive Drag & Drop Dropzone Card #}
+            <div id="batch-dropzone"
+                class="relative flex flex-col items-center justify-center gap-4 p-10 sm:p-14 border-2 border-dashed cursor-pointer transition-all duration-300 select-none group"
+                style="border-color:var(--color-border-strong);background:rgba(20,20,28,0.5);"
+                aria-label="Drop multiple audio files or click to browse">
+
+                <div id="batch-dropzone-glow"
+                    class="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-300"
+                    style="background:radial-gradient(ellipse at center,rgba(139,92,246,0.12) 0%,transparent 70%);">
+                </div>
+
+                <div id="batch-dropzone-icon"
+                    class="w-16 h-16 flex items-center justify-center border rounded-2xl transition-all duration-300 group-hover:scale-105"
+                    style="background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.25);color:#c4b5fd;">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                </div>
+
+                <div class="text-center space-y-1 relative z-10">
+                    <p id="batch-main-label" class="text-base font-bold" style="color:var(--color-text-primary);">
+                        Drag and drop your audio clips here
+                    </p>
+                    <p class="text-xs" style="color:var(--color-text-muted);">
+                        or <button type="button" id="batch-browse-btn"
+                            class="font-bold underline underline-offset-2 hover:text-violet-300 text-violet-400">click
+                            to browse</button>
+                        &nbsp;&mdash;&nbsp; multi-select supported &middot; WAV, MP3, FLAC, OGG, M4A
+                    </p>
+                </div>
+
+                <!-- Native Multiple File Input -->
+                <input type="file" id="id_audio_files" name="audio_files" multiple
+                    accept=".wav,.mp3,.flac,.ogg,.m4a,audio/wav,audio/mpeg,audio/flac,audio/ogg,audio/mp4,audio/x-m4a"
+                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" aria-hidden="true">
+            </div>
+
+            <!-- Selected Files List / Counter Banner -->
+            <div id="batch-file-banner"
+                class="hidden flex-col gap-3 p-4 bg-violet-950/40 border border-violet-500/30 rounded-2xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-xs font-bold text-violet-300">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        <span id="batch-count-text">0 files selected</span>
+                    </div>
+                    <button type="button" id="batch-clear-all"
+                        class="text-[11px] font-semibold text-rose-400 hover:text-rose-200 transition-colors">
+                        Clear Selection
+                    </button>
+                </div>
+
+                <!-- Chips list preview -->
+                <div id="batch-file-chips" class="flex flex-wrap gap-2 max-h-36 overflow-y-auto pt-1"></div>
+            </div>
+
+            {# Upload Progress Indicator & A4 Loading Skeleton State #}
+            <div id="batch-progress-container" class="hidden space-y-3 p-4 border rounded-2xl"
+                style="background:rgba(20,20,28,0.7);border-color:var(--color-border);">
+                <div class="flex items-center justify-between text-xs" style="color:var(--color-text-muted);">
+                    <span id="batch-progress-label" class="font-bold flex items-center gap-2">
+                        <svg class="w-4 h-4 text-violet-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        <span>Validating and ingesting batch audio clips...</span>
+                    </span>
+                    <span id="batch-progress-pct" class="font-mono font-bold text-sm text-violet-400">0%</span>
+                </div>
+                <div class="w-full h-2 rounded-full overflow-hidden" style="background:var(--color-surface-raised);">
+                    <div id="batch-progress-bar" class="h-full transition-all duration-300 rounded-full"
+                        style="width:0%;background:linear-gradient(90deg,#8b5cf6,#c084fc);"></div>
+                </div>
+
+                {# A4 Skeleton Loading State Partial #}
+                <div id="batch-inference-loading" class="mt-4">
+                    {% include "components/loading_state.html" with title="Validating & Ingesting Audio Clips..."
+                    type="table" id="batch-loading-skeleton" %}
+                </div>
+            </div>
+
+            <!-- Submit Action -->
+            <div class="pt-2 flex items-center justify-end gap-3">
+                <a href="/audio/" class="btn btn-ghost btn-sm">View Audio Events</a>
+                <button type="submit" id="batch-submit-btn" class="btn btn-primary btn-lg" disabled
+                    aria-disabled="true">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Validate &amp; Ingest All Clips</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Post-Upload Confirmation & Validation Results Area -->
+    {% if results %}
+    <div class="space-y-6 pt-2" id="batch-results-area">
+
+        <!-- Summary Metric Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div
+                class="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl flex items-center justify-between shadow-lg">
+                <div>
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-0.5">Total Batch Files</p>
+                    <p class="text-2xl font-bold font-mono text-slate-100">{{ results|length }}</p>
+                </div>
+                <div
+                    class="w-10 h-10 rounded-xl bg-slate-800 text-slate-300 flex items-center justify-center font-bold">
+                    {{ results|length }}
+                </div>
+            </div>
+
+            <div
+                class="p-5 bg-emerald-950/60 border border-emerald-500/30 rounded-2xl flex items-center justify-between shadow-lg">
+                <div>
+                    <p class="text-xs text-emerald-400 uppercase font-bold tracking-wider mb-0.5">Accepted Clips</p>
+                    <p class="text-2xl font-bold font-mono text-emerald-400">{{ accepted_count }}</p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+
+            <div
+                class="p-5 bg-rose-950/60 border border-rose-500/30 rounded-2xl flex items-center justify-between shadow-lg">
+                <div>
+                    <p class="text-xs text-rose-400 uppercase font-bold tracking-wider mb-0.5">Rejected Clips</p>
+                    <p class="text-2xl font-bold font-mono text-rose-400">{{ rejected_count }}</p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Per-file Results View -->
+        <div
+            class="bg-slate-900/80 border border-slate-800 rounded-3xl backdrop-blur-xl overflow-hidden shadow-2xl space-y-4 p-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-100 uppercase tracking-wider">Per-File Validation
+                            &amp; Ingestion Summary</h2>
+                        <p class="text-xs text-slate-400">Detailed signal properties, format checks, and rejection
+                            causes</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm" id="batch-results-table">
+                    <thead>
+                        <tr class="border-b border-slate-800 bg-slate-950/60">
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                #</th>
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Filename</th>
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Status</th>
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Reason / System Output</th>
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Quality</th>
+                            <th
+                                class="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        {% for row in results %}
+                        <tr id="batch-row-{{ forloop.counter }}"
+                            class="transition-colors duration-150 {% if row.accepted %}hover:bg-emerald-950/20{% else %}hover:bg-rose-950/20{% endif %}">
+
+                            <td class="px-4 py-3.5 text-slate-500 text-xs font-mono font-bold">{{ forloop.counter }}
+                            </td>
+
+                            <td class="px-4 py-3.5 max-w-xs">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-200 truncate block font-mono"
+                                        title="{{ row.filename }}">
+                                        {{ row.filename }}
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td class="px-4 py-3.5">
+                                {% if row.accepted %}
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                            d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Accepted
+                                </span>
+                                {% else %}
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-rose-500/15 border border-rose-500/30 text-rose-400">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Rejected
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <td class="px-4 py-3.5 max-w-sm">
+                                <span
+                                    class="text-xs {% if row.accepted %}text-slate-300{% else %}text-rose-300 font-semibold{% endif %} leading-relaxed">
+                                    {{ row.reason }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-3.5">
+                                {% if row.metadata.quality %}
+                                <span class="badge badge-quality-{{ row.metadata.quality|lower }}">
+                                    {{ row.metadata.quality }}
+                                </span>
+                                {% else %}
+                                <span class="text-slate-600 text-xs">—</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="px-4 py-3.5 text-slate-300 text-xs font-mono">
+                                {% if row.metadata.duration %}{{ row.metadata.duration }} s{% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<style>
+    #batch-dropzone.drag-over {
+        border-color: var(--color-accent-start) !important;
+        background: rgba(139, 92, 246, 0.08) !important;
+    }
+
+    #batch-dropzone.drag-over #batch-dropzone-glow {
+        opacity: 1;
+    }
+
+    #batch-dropzone.drag-over #batch-dropzone-icon {
+        background: rgba(139, 92, 246, 0.22) !important;
+        border-color: rgba(139, 92, 246, 0.6) !important;
+        transform: scale(1.08);
+    }
+
+    #batch-submit-btn[disabled] {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+</style>
+
+<script>
+    (function () {
+        "use strict";
+        const dz = document.getElementById("batch-dropzone"),
+            fi = document.getElementById("id_audio_files"),
+            bb = document.getElementById("batch-browse-btn"),
+            banner = document.getElementById("batch-file-banner"),
+            countText = document.getElementById("batch-count-text"),
+            chipsContainer = document.getElementById("batch-file-chips"),
+            clearAllBtn = document.getElementById("batch-clear-all"),
+            submitBtn = document.getElementById("batch-submit-btn"),
+            form = document.getElementById("batch-upload-form"),
+            progressContainer = document.getElementById("batch-progress-container"),
+            progressBar = document.getElementById("batch-progress-bar"),
+            progressPct = document.getElementById("batch-progress-pct");
+
+        if (!fi) return;
+
+        function fmt(b) { return b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(1) + " KB" : (b / 1048576).toFixed(1) + " MB"; }
+
+        function updateFilesList() {
+            const files = fi.files ? Array.from(fi.files) : [];
+            if (files.length > 0) {
+                countText.textContent = files.length === 1 ? '1 file selected for batch processing' : files.length + ' files selected for batch processing';
+                banner.classList.remove('hidden');
+                banner.classList.add('flex');
+                submitBtn.removeAttribute('disabled');
+                submitBtn.removeAttribute('aria-disabled');
+
+                chipsContainer.innerHTML = files.map((f, idx) => `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-mono font-semibold bg-violet-500/15 border border-violet-500/30 text-violet-300">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-2v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-2"/>
+                    </svg>
+                    <span class="truncate max-w-[140px]">${f.name}</span>
+                    <span class="text-[10px] text-violet-400">(${fmt(f.size)})</span>
+                </span>
+            `).join('');
+            } else {
+                banner.classList.add('hidden');
+                banner.classList.remove('flex');
+                chipsContainer.innerHTML = '';
+                submitBtn.setAttribute('disabled', '');
+                submitBtn.setAttribute('aria-disabled', 'true');
+            }
+        }
+
+        if (bb) bb.addEventListener('click', () => fi.click());
+        if (fi) fi.addEventListener('change', updateFilesList);
+
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', () => {
+                fi.value = '';
+                updateFilesList();
+            });
+        }
+
+        if (dz) {
+            ["dragover", "dragenter"].forEach(ev => dz.addEventListener(ev, e => {
+                e.preventDefault();
+                dz.classList.add("drag-over");
+            }));
+            ["dragleave", "dragend", "drop"].forEach(ev => dz.addEventListener(ev, e => {
+                e.preventDefault();
+                dz.classList.remove("drag-over");
+            }));
+            dz.addEventListener("drop", e => {
+                const files = e.dataTransfer?.files;
+                if (files && files.length > 0) {
+                    const dt = new DataTransfer();
+                    Array.from(files).forEach(f => dt.items.add(f));
+                    fi.files = dt.files;
+                    updateFilesList();
+                }
+            });
+            dz.addEventListener("click", e => {
+                if (!e.target.closest("#batch-browse-btn")) fi.click();
+            });
+        }
+
+        if (form) {
+            form.addEventListener('submit', function () {
+                if (!fi.files || fi.files.length === 0) return;
+                if (progressContainer) progressContainer.classList.remove('hidden');
+                if (submitBtn) {
+                    submitBtn.setAttribute('disabled', '');
+                    submitBtn.setAttribute('aria-disabled', 'true');
+                }
+
+                let pct = 0;
+                const timer = setInterval(() => {
+                    pct += 15;
+                    if (pct >= 90) clearInterval(timer);
+                    if (progressBar) progressBar.style.width = pct + '%';
+                    if (progressPct) progressPct.textContent = pct + '%';
+                }, 120);
+            });
+        }
+    })();
+</script>
+{% endblock %}

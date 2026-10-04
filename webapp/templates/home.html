@@ -1,0 +1,501 @@
+{% extends "app_base.html" %}
+{% load static %}
+
+{% block title %}SonicSentinel AI — Real-Time Sound Event Detection & Dual-Engine AI Intelligence{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-[var(--space-6)] sm:gap-[var(--space-7)]">
+
+    {% comment %}
+    ═══════════════════════════════════════════════════════════════════════════
+    1. HERO SECTION
+    Headline, one-sentence subheadline, primary CTA, hero-waveform background
+    with parallax scroll effect.
+    ═══════════════════════════════════════════════════════════════════════════
+    {% endcomment %}
+    <section
+        class="relative overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] p-6 sm:p-10 lg:p-12 shadow-2xl"
+        data-reveal="fade">
+
+        {# AI Generated Hero Waveform Background with Parallax #}
+        <picture class="absolute inset-0 w-full h-full pointer-events-none opacity-40 mix-blend-screen overflow-hidden"
+            data-parallax data-parallax-speed="0.25">
+            <source srcset="{% static 'images/generated/hero-waveform.webp' %}" type="image/webp">
+            <img src="{% static 'images/generated/hero-waveform.png' %}" alt="SonicSentinel AI Waveform Background"
+                class="w-full h-full object-cover object-center">
+        </picture>
+
+        {# Glow radial highlights #}
+        <div
+            class="absolute -top-32 -right-32 w-[30rem] h-[30rem] bg-[var(--color-accent-start)]/15 rounded-full blur-3xl pointer-events-none">
+        </div>
+        <div
+            class="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] bg-[var(--color-accent-end)]/15 rounded-full blur-3xl pointer-events-none">
+        </div>
+
+        <div class="relative z-10 max-w-3xl space-y-[var(--space-4)]">
+
+            {# Badge #}
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold
+                        border border-[var(--color-border-strong)]
+                        backdrop-blur-md shadow-inner" style="background:var(--gradient-accent-subtle);">
+                <span class="w-2 h-2 rounded-full bg-[var(--color-accent-end)] animate-ping"></span>
+                <span class="text-accent-gradient font-heading tracking-wide uppercase text-[11px] font-bold">
+                    AcousticX Intelligence &middot; Dual-Engine Detection
+                </span>
+            </div>
+
+            {# Headline #}
+            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[var(--color-text-primary)]
+                       font-heading tracking-tight leading-[1.1]">
+                Real-Time Acoustic Event Intelligence &amp; Classification
+            </h1>
+
+            {# Subheadline #}
+            <p class="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl font-body font-normal">
+                SonicSentinel AI pairs server-side Python neural inference with client-side browser TensorFlow.js
+                to detect, classify, and alert on 10 critical acoustic sound categories in real-time.
+            </p>
+
+            {# Primary CTA Group #}
+            <div class="pt-2 flex flex-wrap items-center gap-3">
+                {% if request.user.is_authenticated %}
+                <a href="/dashboard/" class="btn btn-primary btn-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>Launch Dashboard</span>
+                </a>
+                <a href="/live/" class="btn btn-secondary btn-lg">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <span>Live Monitor</span>
+                </a>
+                <a href="/audio/upload/" class="btn btn-ghost btn-lg">
+                    <span>Upload Clip</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </a>
+                {% else %}
+                <a href="/accounts/register/" class="btn btn-primary btn-lg">
+                    <span>Get Started Free</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </a>
+                <a href="/accounts/login/" class="btn btn-secondary btn-lg">
+                    <span>Sign In</span>
+                </a>
+                <a href="/live/" class="btn btn-ghost btn-lg">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Live Demo</span>
+                </a>
+                {% endif %}
+            </div>
+
+            {# Quick Tech Metrics Pill #}
+            <div class="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-[var(--color-border)] text-xs">
+                <div>
+                    <span class="text-slate-400 block">Python Model</span>
+                    <span class="font-bold text-slate-100 font-mono">FastAPI Endpoint</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block">GTM Model</span>
+                    <span class="font-bold text-cyan-400 font-mono">TensorFlow.js (In-Browser)</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block">Classification</span>
+                    <span class="font-bold text-purple-300 font-mono">10 Mandatory Classes</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block">Persistence</span>
+                    <span class="font-bold text-emerald-400 font-mono">Django ORM / SQLite</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    {% comment %}
+    ═══════════════════════════════════════════════════════════════════════════
+    2. FEATURE HIGHLIGHT SECTION
+    4 Core Capabilities with A7 vector icons and staggered scroll reveal.
+    ═══════════════════════════════════════════════════════════════════════════
+    {% endcomment %}
+    <section class="space-y-[var(--space-4)]">
+        <div class="text-center max-w-2xl mx-auto space-y-2" data-reveal="fade">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[var(--color-text-primary)] font-heading">
+                Core System Capabilities
+            </h2>
+            <p class="text-xs sm:text-sm text-[var(--color-text-muted)]">
+                Engineered for security operators, sound analysts, and automated acoustic rule enforcement.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[var(--space-3)]">
+
+            {# Feature 1: Real-Time Ingestion #}
+            <div class="card card-glass p-6 space-y-4 flex flex-col justify-between hover:border-[var(--color-accent-start)]/40 transition-all duration-300"
+                data-reveal data-reveal-delay="100">
+                <div class="space-y-3">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-[var(--color-surface-raised)] border border-[var(--color-border-strong)] p-2.5 flex items-center justify-center shadow-lg shadow-purple-950/40">
+                        <img src="{% static 'images/features/real-time-sound-detection.svg' %}"
+                            alt="Real-Time Sound Ingestion" class="w-full h-full">
+                    </div>
+                    <h3 class="text-base font-bold text-[var(--color-text-primary)] font-heading">
+                        Multi-Format Ingestion
+                    </h3>
+                    <p class="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                        Validates WAV, MP3, FLAC, OGG, and M4A audio. Supports single uploads, batch ingestion, and live
+                        microphone capture streams.
+                    </p>
+                </div>
+                <div class="pt-2 border-t border-[var(--color-border)] text-[11px] font-mono text-cyan-400 font-medium">
+                    3.0s windowing &middot; Silence trim
+                </div>
+            </div>
+
+            {# Feature 2: Dual-Model Comparison #}
+            <div class="card card-glass p-6 space-y-4 flex flex-col justify-between hover:border-[var(--color-accent-start)]/40 transition-all duration-300"
+                data-reveal data-reveal-delay="200">
+                <div class="space-y-3">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-[var(--color-surface-raised)] border border-[var(--color-border-strong)] p-2.5 flex items-center justify-center shadow-lg shadow-indigo-950/40">
+                        <img src="{% static 'images/features/dual-model-comparison.svg' %}" alt="Dual-Model Comparison"
+                            class="w-full h-full">
+                    </div>
+                    <h3 class="text-base font-bold text-[var(--color-text-primary)] font-heading">
+                        Dual-Engine Verification
+                    </h3>
+                    <p class="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                        Independently evaluates Python server predictions against client-side GTM TensorFlow.js outputs
+                        without data leaks.
+                    </p>
+                </div>
+                <div
+                    class="pt-2 border-t border-[var(--color-border)] text-[11px] font-mono text-purple-300 font-medium">
+                    Confidence differential &middot; Top-3
+                </div>
+            </div>
+
+            {# Feature 3: Instant Rule Alerts #}
+            <div class="card card-glass p-6 space-y-4 flex flex-col justify-between hover:border-[var(--color-accent-start)]/40 transition-all duration-300"
+                data-reveal data-reveal-delay="300">
+                <div class="space-y-3">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-[var(--color-surface-raised)] border border-[var(--color-border-strong)] p-2.5 flex items-center justify-center shadow-lg shadow-rose-950/40">
+                        <img src="{% static 'images/features/instant-alerts.svg' %}" alt="Instant Rule Alerts"
+                            class="w-full h-full">
+                    </div>
+                    <h3 class="text-base font-bold text-[var(--color-text-primary)] font-heading">
+                        Critical Alert Engine
+                    </h3>
+                    <p class="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                        Evaluates configurable category rules, quality checks, and repeated detections across 5 severity
+                        levels (Informational to Critical).
+                    </p>
+                </div>
+                <div class="pt-2 border-t border-[var(--color-border)] text-[11px] font-mono text-rose-400 font-medium">
+                    Auto-escalate &middot; Review queue
+                </div>
+            </div>
+
+            {# Feature 4: Live Security Monitor #}
+            <div class="card card-glass p-6 space-y-4 flex flex-col justify-between hover:border-[var(--color-accent-start)]/40 transition-all duration-300"
+                data-reveal data-reveal-delay="400">
+                <div class="space-y-3">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-[var(--color-surface-raised)] border border-[var(--color-border-strong)] p-2.5 flex items-center justify-center shadow-lg shadow-cyan-950/40">
+                        <img src="{% static 'images/features/live-monitoring.svg' %}" alt="Live Security Monitor"
+                            class="w-full h-full">
+                    </div>
+                    <h3 class="text-base font-bold text-[var(--color-text-primary)] font-heading">
+                        Security Operator View
+                    </h3>
+                    <p class="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                        Live visual status indicators, real-time waveform bars, dual model top-class predictions, and
+                        active alert dispatch panels.
+                    </p>
+                </div>
+                <div
+                    class="pt-2 border-t border-[var(--color-border)] text-[11px] font-mono text-emerald-400 font-medium">
+                    5s polling &middot; Instant JS hooks
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    {% comment %}
+    ═══════════════════════════════════════════════════════════════════════════
+    3. DUAL-ENGINE ARCHITECTURE SHOWCASE
+    Visual comparison breakdown of Python backend ML vs TF.js client GTM.
+    ═══════════════════════════════════════════════════════════════════════════
+    {% endcomment %}
+    <section class="card card-glass p-6 sm:p-8 space-y-6" data-reveal="scale">
+        <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--color-border)] pb-4">
+            <div>
+                <span
+                    class="text-[10px] uppercase font-bold tracking-widest text-[var(--color-accent-end)] block">Architectural
+                    Integrity</span>
+                <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text-primary)] font-heading">
+                    Dual Independent Inference Engines
+                </h2>
+            </div>
+            <div
+                class="flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-950/60 px-3 py-1.5 border border-[var(--color-border)]">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span>SRS Rule Compliant — Zero Cross-Leaking</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {# Python Engine Box #}
+            <div class="p-5 bg-slate-950/60 border border-cyan-500/30 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span
+                            class="px-2 py-0.5 text-xs font-bold font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">PY</span>
+                        <span class="text-sm font-bold text-slate-100 font-heading">Python Model (Server-Side)</span>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-400">FastAPI Microservice</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Processes uploaded audio clips or streamed live chunks. Extracts MFCC, Mel Spectrogram, Chroma, ZCR,
+                    RMS Energy, and roll-off features to return full 10-class probability vectors.
+                </p>
+                <div class="grid grid-cols-2 gap-2 text-[11px] font-mono">
+                    <div class="p-2 bg-slate-900 border border-slate-800 text-slate-300">
+                        <span class="text-slate-500 block text-[9px] uppercase">Execution</span>
+                        Server / Microservice
+                    </div>
+                    <div class="p-2 bg-slate-900 border border-slate-800 text-slate-300">
+                        <span class="text-slate-500 block text-[9px] uppercase">Feature Output</span>
+                        Top-3 &amp; Waveform
+                    </div>
+                </div>
+            </div>
+
+            {# GTM TF.js Engine Box #}
+            <div class="p-5 bg-slate-950/60 border border-purple-500/30 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span
+                            class="px-2 py-0.5 text-xs font-bold font-mono bg-purple-500/20 text-purple-300 border border-purple-500/40">JS</span>
+                        <span class="text-sm font-bold text-slate-100 font-heading">GTM Model (Browser Client)</span>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-400">TensorFlow.js</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Runs client-side in the user's browser using exported TensorFlow.js artifacts. Evaluates the exact
+                    same audio stream with zero server round trips or database access.
+                </p>
+                <div class="grid grid-cols-2 gap-2 text-[11px] font-mono">
+                    <div class="p-2 bg-slate-900 border border-slate-800 text-slate-300">
+                        <span class="text-slate-500 block text-[9px] uppercase">Execution</span>
+                        Client-side Browser
+                    </div>
+                    <div class="p-2 bg-slate-900 border border-slate-800 text-slate-300">
+                        <span class="text-slate-500 block text-[9px] uppercase">Latency</span>
+                        Near-instant local
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    {% comment %}
+    ═══════════════════════════════════════════════════════════════════════════
+    4. 10 MANDATORY SOUND CATEGORIES SHOWCASE
+    Grid featuring A7 SVG icons and severity tags.
+    ═══════════════════════════════════════════════════════════════════════════
+    {% endcomment %}
+    <section class="relative overflow-hidden card card-glass p-6 sm:p-8 space-y-6" data-reveal="fade">
+
+        {# Section Frequency Background Image #}
+        <picture class="absolute inset-0 w-full h-full pointer-events-none opacity-20 mix-blend-screen" data-parallax
+            data-parallax-speed="0.15">
+            <source srcset="{% static 'images/generated/section-bg-frequency.webp' %}" type="image/webp">
+            <img src="{% static 'images/generated/section-bg-frequency.png' %}" alt="Audio Frequency Background"
+                class="w-full h-full object-cover">
+        </picture>
+
+        <div
+            class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--color-border)] pb-4">
+            <div>
+                <span
+                    class="text-[10px] uppercase font-bold tracking-widest text-[var(--color-accent-start)] block">Classification
+                    Taxonomy</span>
+                <h2 class="text-xl sm:text-2xl font-bold text-[var(--color-text-primary)] font-heading">
+                    10 Mandatory Acoustic Categories
+                </h2>
+            </div>
+            <span
+                class="text-xs font-mono text-slate-400 bg-slate-950/60 px-3 py-1 border border-[var(--color-border)] w-fit">
+                Full Category Support
+            </span>
+        </div>
+
+        <div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-5 sm:gap-6">
+
+            {# 1. Machinery Fault #}
+            <div
+                class="p-5 bg-slate-950/70 border border-[var(--color-border)] space-y-3 hover:border-amber-500/50 transition-all shadow-lg">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+                    <img src="{% static 'images/categories/machinery_fault.svg' %}" alt="Machinery Fault"
+                        class="w-7 h-7 shrink-0">
+                    {% include "components/severity_badge.html" with severity="Medium" %}
+                </div>
+                <h4 class="text-sm font-bold text-slate-100 font-heading tracking-tight">1. Machinery Fault</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">Industrial gear failure, bearing chatter &amp;
+                    mechanical anomalies.</p>
+            </div>
+
+            {# 2. Glass Breaking #}
+            <div
+                class="p-5 bg-slate-950/70 border border-[var(--color-border)] space-y-3 hover:border-amber-500/50 transition-all shadow-lg">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+                    <img src="{% static 'images/categories/glass_breaking.svg' %}" alt="Glass Breaking"
+                        class="w-7 h-7 shrink-0">
+                    {% include "components/severity_badge.html" with severity="High" %}
+                </div>
+                <h4 class="text-sm font-bold text-slate-100 font-heading tracking-tight">2. Glass Breaking</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">High-frequency perimeter intrusion &amp; window
+                    breakage.</p>
+            </div>
+
+            {# 3. Alarm or Siren #}
+            <div
+                class="p-5 bg-slate-950/70 border border-[var(--color-border)] space-y-3 hover:border-amber-500/50 transition-all shadow-lg">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+                    <img src="{% static 'images/categories/alarm_or_siren.svg' %}" alt="Alarm or Siren"
+                        class="w-7 h-7 shrink-0">
+                    {% include "components/severity_badge.html" with severity="High" %}
+                </div>
+                <h4 class="text-sm font-bold text-slate-100 font-heading tracking-tight">3. Alarm or Siren</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">Emergency beacons, fire alarms &amp; security sirens.
+                </p>
+            </div>
+
+            {# 4. Vehicle Horn #}
+            <div
+                class="p-5 bg-slate-950/70 border border-[var(--color-border)] space-y-3 hover:border-cyan-500/50 transition-all shadow-lg">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+                    <img src="{% static 'images/categories/vehicle_horn.svg' %}" alt="Vehicle Horn"
+                        class="w-7 h-7 shrink-0">
+                    {% include "components/severity_badge.html" with severity="Low" %}
+                </div>
+                <h4 class="text-sm font-bold text-slate-100 font-heading tracking-tight">4. Vehicle Horn</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">Traffic noise events &amp; environmental acoustic
+                    activity.</p>
+            </div>
+
+            {# 5. Animal Sound #}
+            <div
+                class="p-5 bg-slate-950/70 border border-[var(--color-border)] space-y-3 hover:border-cyan-500/50 transition-all shadow-lg">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+                    <img src="{% static 'images/categories/animal_sound.svg' %}" alt="Animal Sound"
+                        class="w-7 h-7 shrink-0">
+                    {% include "components/severity_badge.html" with severity="Low" %}
+                </div>
+                <h4 class="text-sm font-bold text-slate-100 font-heading tracking-tight">5. Animal Sound</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">Barking, fauna vocalizations &amp; non-critical
+                    environment sounds.</p>
+            </div>
+
+            {# 6. Gunshot #}
+            <div
+                class="p-5 bg-slate-950/70 border border-rose-500/50 space-y-3 hover:border-rose-500 transition-all shadow-xl shadow-rose-950/20">
+                <div class="flex items-center justify-between gap-2 border-b border-rose-900/60 pb-3">
+                    <img src="{% static 'images/categories/gunshot.svg' %}" alt="Gunshot" class="w-7 h-7 shrink-0">
+                    {% include "components/severity_badge.html" with severity="Critical" %}
+                </div>
+                <h4 class="text-sm font-bold text-rose-300 font-heading tracking-tight">6. Gunshot</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">Ballistic shockwave impact requiring
+                    double-confirmation.</p>
+            </div>
+
+            {# 7. Panic Scream #}
+            <div
+                class="p-5 bg-slate-950/70 border border-rose-500/50 space-y-3 hover:border-rose-500 transition-all shadow-xl shadow-rose-950/20">
+                <div class="flex items-center justify-between gap-2 border-b border-rose-900/60 pb-3">
+                    <img src="{% static 'images/categories/panic_scream.svg' %}" alt="Panic Scream"
+                        class="w-7 h-7 shrink-0">
+                    {% include "components/severity_badge.html" with severity="Critical" %}
+                </div>
+                <h4 class="text-sm font-bold text-rose-300 font-heading tracking-tight">7. Panic Scream</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">Human distress vocalizations &amp; high-urgency safety
+                    alerts.</p>
+            </div>
+
+            {# 8. Aggression #}
+            <div
+                class="p-5 bg-slate-950/70 border border-amber-500/50 space-y-3 hover:border-amber-400 transition-all shadow-lg">
+                <div class="flex items-center justify-between gap-2 border-b border-amber-900/60 pb-3">
+                    <img src="{% static 'images/categories/aggression.svg' %}" alt="Aggression"
+                        class="w-7 h-7 shrink-0">
+                    {% include "components/severity_badge.html" with severity="High" %}
+                </div>
+                <h4 class="text-sm font-bold text-slate-100 font-heading tracking-tight">8. Violent Conflict</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">Aggressive shouting, verbal hostility &amp; active
+                    confrontation.</p>
+            </div>
+
+            {# 9. Person Asking for Help #}
+            <div
+                class="p-5 bg-slate-950/70 border border-rose-500/50 space-y-3 hover:border-rose-500 transition-all shadow-xl shadow-rose-950/20">
+                <div class="flex items-center justify-between gap-2 border-b border-rose-900/60 pb-3">
+                    <img src="{% static 'images/categories/person_asking_for_help.svg' %}" alt="Person Asking for Help"
+                        class="w-7 h-7 shrink-0">
+                    {% include "components/severity_badge.html" with severity="Critical" %}
+                </div>
+                <h4 class="text-sm font-bold text-rose-300 font-heading tracking-tight">9. Person Asking Help</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">Defined help phrases &amp; verbal distress emergency
+                    requests.</p>
+            </div>
+
+            {# 10. Background Noise #}
+            <div
+                class="p-5 bg-slate-950/70 border border-[var(--color-border)] space-y-3 hover:border-slate-700 transition-all shadow-lg">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+                    <img src="{% static 'images/categories/background_noise.svg' %}" alt="Background Noise"
+                        class="w-7 h-7 shrink-0">
+                    {% include "components/severity_badge.html" with severity="Informational" %}
+                </div>
+                <h4 class="text-sm font-bold text-slate-100 font-heading tracking-tight">10. Background Noise</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">Baseline ambient acoustic noise floor &amp;
+                    non-critical sound.</p>
+            </div>
+
+        </div>
+    </section>
+
+    {% comment %}
+    ═══════════════════════════════════════════════════════════════════════════
+    5. RECENT DETECTIONS TIMELINE
+    Reusable Timeline component embedding real persisted event detections.
+    ═══════════════════════════════════════════════════════════════════════════
+    {% endcomment %}
+    <section data-reveal="fade">
+        {% include "components/timeline.html" with page_obj=events_page title="System Sound Detections Timeline" %}
+    </section>
+
+</div>
+{% endblock %}

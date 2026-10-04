@@ -1,0 +1,44 @@
+{# Reusable Token-Driven Input Component Partial #}
+<div class="form-group {{ wrapper_classes|default:'' }}">
+  {% if label %}
+  <label for="{{ id|default:name }}" class="form-label">
+    {{ label }}
+    {% if required %}<span class="text-rose-400 ml-0.5">*</span>{% endif %}
+  </label>
+  {% endif %}
+
+  {% if type == 'select' %}
+  <select name="{{ name }}" id="{{ id|default:name }}" class="form-select {{ extra_classes|default:'' }}" {% if required
+    %}required{% endif %} {% if disabled %}disabled{% endif %} {% if onchange %}onchange="{{ onchange }}" {% endif %}>
+    {% if placeholder %}
+    <option value="" {% if not value %}selected{% endif %}>{{ placeholder }}</option>
+    {% endif %}
+    {% for opt in options %}
+    {% if opt.value %}
+    <option value="{{ opt.value }}" {% if opt.value==value %}selected{% endif %}>{{ opt.label|default:opt.value }}
+    </option>
+    {% else %}
+    <option value="{{ opt }}" {% if opt==value %}selected{% endif %}>{{ opt }}</option>
+    {% endif %}
+    {% endfor %}
+  </select>
+  {% elif type == 'textarea' %}
+  <textarea name="{{ name }}" id="{{ id|default:name }}" rows="{{ rows|default:3 }}"
+    placeholder="{{ placeholder|default:'' }}" class="form-textarea {{ extra_classes|default:'' }}" {% if required
+    %}required{% endif %} {% if disabled %}disabled{% endif %}>{{ value|default:'' }}</textarea>
+  {% elif type == 'file' %}
+  <input type="file" name="{{ name }}" id="{{ id|default:name }}" accept="{{ accept|default:'' }}"
+    class="form-file {{ extra_classes|default:'' }}" {% if multiple %}multiple{% endif %} {% if required %}required{%
+    endif %} {% if disabled %}disabled{% endif %} {% if onchange %}onchange="{{ onchange }}" {% endif %}>
+  {% else %}
+  <input type="{{ type|default:'text' }}" name="{{ name }}" id="{{ id|default:name }}" value="{{ value|default:'' }}"
+    placeholder="{{ placeholder|default:'' }}" class="form-control {{ extra_classes|default:'' }}" {% if step
+    %}step="{{ step }}" {% endif %} {% if min %}min="{{ min }}" {% endif %} {% if max %}max="{{ max }}" {% endif %} {%
+    if required %}required{% endif %} {% if disabled %}disabled{% endif %} {% if autocomplete
+    %}autocomplete="{{ autocomplete }}" {% endif %}>
+  {% endif %}
+
+  {% if help_text %}
+  <p class="form-help">{{ help_text }}</p>
+  {% endif %}
+</div>

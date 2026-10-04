@@ -1,0 +1,354 @@
+{# FE-11 � Waveform & Spectrogram Visualization Component #}
+{# Usage: {% include "components/waveform_spectrogram.html" with event=event waveform=waveform_data
+spectrogram=spectrogram_data %} #}
+
+{% with component_id=id_suffix|default:event.audio_id|default:"default" %}
+<div class="card card-glass" id="audio-viz-container-{{ component_id }}" style="padding:0; overflow:hidden;">
+
+    {# -- Card Header -- #}
+    <div class="card-header" style="padding:1.125rem 1.375rem 1rem; margin-bottom:0;">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div style="width:2rem; height:2rem; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+                        background:linear-gradient(135deg,rgba(124,92,255,0.18) 0%,rgba(34,211,238,0.12) 100%);
+                        border:1px solid rgba(124,92,255,0.28);">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    style="color:#a78bfa;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12 0c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="card-title" style="margin-bottom:0.1rem; font-size:0.875rem;">Acoustic Signal Visualization
+                </h3>
+                <p class="card-subtitle" style="margin:0; font-size:0.6875rem;">
+                    {% if event %}{{ event.filename|truncatechars:40 }}
+                    <span style="color:rgba(255,255,255,0.3);">&middot;</span>
+                    {{ event.duration|default:"&mdash;" }}s
+                    <span style="color:rgba(255,255,255,0.3);">&middot;</span>
+                    {{ event.sampling_rate|default:"&mdash;" }} Hz
+                    {% else %}Audio Signal Analysis{% endif %}
+                </p>
+            </div>
+        </div>
+
+        {# -- Mode Toggle -- #}
+        <div style="display:inline-flex; padding:3px; gap:2px;
+                    background:rgba(10,10,15,0.8); border:1px solid var(--color-border);">
+            <button type="button" id="tab-waveform-btn-{{ component_id }}"
+                onclick="switchVizTab('{{ component_id }}','waveform')"
+                class="viz-tab-btn viz-tab-active-{{ component_id }}" data-vizid="{{ component_id }}" style="font-size:0.7rem;padding:0.3rem 0.7rem;cursor:pointer;
+                           background:var(--gradient-accent);color:#fff;font-weight:600;
+                           box-shadow:0 0 10px rgba(124,92,255,0.35); border:none; font-family:var(--font-body);">
+                Waveform
+            </button>
+            <button type="button" id="tab-spectrogram-btn-{{ component_id }}"
+                onclick="switchVizTab('{{ component_id }}','spectrogram')" class="viz-tab-btn"
+                data-vizid="{{ component_id }}"
+                style="font-size:0.7rem;padding:0.3rem 0.7rem;cursor:pointer;
+                           background:transparent;color:var(--color-text-muted);border:none;font-family:var(--font-body);">
+                Spectrogram
+            </button>
+            <button type="button" id="tab-both-btn-{{ component_id }}"
+                onclick="switchVizTab('{{ component_id }}','both')" class="viz-tab-btn" data-vizid="{{ component_id }}"
+                style="font-size:0.7rem;padding:0.3rem 0.7rem;cursor:pointer;
+                           background:transparent;color:var(--color-text-muted);border:none;font-family:var(--font-body);">
+                Dual Split
+            </button>
+        </div>
+    </div>
+
+    {# -- Body -- #}
+    <div style="padding:0 1.375rem 1.375rem; display:flex; flex-direction:column; gap:0.875rem;">
+
+        {# -- WAVEFORM PANEL -- #}
+        <div id="section-waveform-{{ component_id }}">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+                <span style="display:flex; align-items:center; gap:0.5rem; font-size:0.6875rem; font-weight:600;
+                             text-transform:uppercase; letter-spacing:0.09em; color:var(--color-text-muted);">
+                    <span style="width:6px;height:6px;border-radius:9999px;flex-shrink:0;
+                                 background:linear-gradient(135deg,#7C5CFF,#22D3EE);
+                                 box-shadow:0 0 6px rgba(34,211,238,0.5);"></span>
+                    Amplitude Waveform
+                </span>
+                <span style="font-size:0.625rem;font-family:'Courier New',monospace;color:rgba(154,154,174,0.6);">
+                    &minus;1.0 FS &mdash; +1.0 FS
+                </span>
+            </div>
+
+            <div
+                style="position:relative;background:#070710;border:1px solid var(--color-border);overflow:hidden;height:160px;">
+                {% if waveform_image %}
+                <img src="{{ waveform_image }}" alt="Waveform"
+                    style="width:100%;height:100%;object-fit:fill;display:block;">
+                {% elif event and event.waveform_image %}
+                <img src="{{ event.waveform_image }}" alt="Waveform"
+                    style="width:100%;height:100%;object-fit:fill;display:block;">
+                {% else %}
+                <canvas id="waveform-canvas-{{ component_id }}" style="width:100%;height:100%;display:block;"></canvas>
+                {% endif %}
+            </div>
+
+            <p style="font-size:0.625rem;color:rgba(154,154,174,0.5);margin:0.35rem 0 0;font-family:var(--font-body);">
+                Time-domain amplitude envelope &middot; accent gradient stroke &middot; animated reveal
+            </p>
+        </div>
+
+        {# -- SPECTROGRAM PANEL -- #}
+        <div id="section-spectrogram-{{ component_id }}" style="display:none;">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+                <span style="display:flex; align-items:center; gap:0.5rem; font-size:0.6875rem; font-weight:600;
+                             text-transform:uppercase; letter-spacing:0.09em; color:var(--color-text-muted);">
+                    <span style="width:6px;height:6px;border-radius:9999px;flex-shrink:0;
+                                 background:linear-gradient(135deg,#3b0071,#ff6a00);
+                                 box-shadow:0 0 6px rgba(255,106,0,0.45);"></span>
+                    Mel-Spectrogram Energy Heatmap
+                </span>
+                <span style="font-size:0.625rem;font-family:'Courier New',monospace;color:rgba(154,154,174,0.6);">
+                    0 &ndash; {{ event.sampling_rate|default:22050 }} Hz &middot; Magma
+                </span>
+            </div>
+
+            <div
+                style="position:relative;background:#000004;border:1px solid var(--color-border);overflow:hidden;height:160px;">
+                {% if spectrogram_image %}
+                <img src="{{ spectrogram_image }}" alt="Spectrogram"
+                    style="width:100%;height:100%;object-fit:fill;display:block;">
+                {% elif event and event.spectrogram_image %}
+                <img src="{{ event.spectrogram_image }}" alt="Spectrogram"
+                    style="width:100%;height:100%;object-fit:fill;display:block;">
+                {% else %}
+                <canvas id="spectrogram-canvas-{{ component_id }}"
+                    style="width:100%;height:100%;display:block;"></canvas>
+                {% endif %}
+                {# Magma colormap legend #}
+                <div style="position:absolute;bottom:6px;right:8px;display:flex;align-items:center;gap:5px;">
+                    <span
+                        style="font-size:0.5rem;color:rgba(154,154,174,0.5);font-family:'Courier New',monospace;">Low</span>
+                    <div style="width:64px;height:5px;
+                                background:linear-gradient(to right,#000004,#3b0f70,#8c2981,#de4968,#fe9f6d,#fcfdbf);">
+                    </div>
+                    <span
+                        style="font-size:0.5rem;color:rgba(154,154,174,0.5);font-family:'Courier New',monospace;">High</span>
+                </div>
+            </div>
+
+            <p style="font-size:0.625rem;color:rgba(154,154,174,0.5);margin:0.35rem 0 0;font-family:var(--font-body);">
+                Frequency (Hz) vs. Time &middot; Magma colormap &mdash; perceptually uniform on dark backgrounds
+            </p>
+        </div>
+
+    </div>
+</div>
+
+{# -- JSON data bridges -- #}
+{% with waveform_id=component_id|add:"_waveform_data" spectrogram_id=component_id|add:"_spectrogram_data" %}
+{% if waveform %}{{ waveform|json_script:waveform_id }}
+{% elif event and event.waveform %}{{ event.waveform|json_script:waveform_id }}{% endif %}
+{% if spectrogram %}{{ spectrogram|json_script:spectrogram_id }}
+{% elif event and event.spectrogram %}{{ event.spectrogram|json_script:spectrogram_id }}{% endif %}
+{% endwith %}
+
+<script>
+    (function () {
+        const CID = "{{ component_id }}";
+
+        /* -- Load JSON data -- */
+        let rawWaveform = null, rawSpectrogram = null;
+        try { const el = document.getElementById(CID + "_waveform_data"); if (el) rawWaveform = JSON.parse(el.textContent); } catch (_) { }
+        try { const el = document.getElementById(CID + "_spectrogram_data"); if (el) rawSpectrogram = JSON.parse(el.textContent); } catch (_) { }
+
+        /* -- Synthetic fallback waveform -- */
+        if (!Array.isArray(rawWaveform) || !rawWaveform.length) {
+            rawWaveform = [];
+            const N = 300;
+            for (let i = 0; i < N; i++) {
+                const t = i / N;
+                const v = (Math.sin(t * 28) * 0.42 + Math.sin(t * 73) * 0.28 + Math.sin(t * 11) * 0.18 + (Math.random() - 0.5) * 0.10) * Math.sin(t * Math.PI);
+                rawWaveform.push(parseFloat(v.toFixed(4)));
+            }
+        }
+
+        /* -- Synthetic fallback spectrogram -- */
+        if (!Array.isArray(rawSpectrogram) || !rawSpectrogram.length) {
+            rawSpectrogram = [];
+            const MELS = 48, STEPS = 80;
+            for (let m = 0; m < MELS; m++) {
+                const row = [];
+                for (let s = 0; s < STEPS; s++) {
+                    const peak = 8 + Math.sin(s * 0.12) * 6;
+                    row.push(parseFloat((Math.exp(-Math.pow(m - peak, 2) / 18) * (0.55 + Math.random() * 0.45)).toFixed(3)));
+                }
+                rawSpectrogram.push(row);
+            }
+        }
+
+        /* -- Tab switching -- */
+        window.switchVizTab = function (cId, mode) {
+            const secW = document.getElementById("section-waveform-" + cId);
+            const secS = document.getElementById("section-spectrogram-" + cId);
+            const btnW = document.getElementById("tab-waveform-btn-" + cId);
+            const btnS = document.getElementById("tab-spectrogram-btn-" + cId);
+            const btnB = document.getElementById("tab-both-btn-" + cId);
+
+            const ACTIVE = "background:var(--gradient-accent);color:#fff;font-weight:600;box-shadow:0 0 10px rgba(124,92,255,0.35);border:none;font-family:var(--font-body);";
+            const IDLE = "background:transparent;color:var(--color-text-muted);border:none;font-family:var(--font-body);";
+
+            [btnW, btnS, btnB].forEach(b => { if (b) b.style.cssText += IDLE; });
+
+            if (mode === "waveform") {
+                if (secW) secW.style.display = "";
+                if (secS) secS.style.display = "none";
+                if (btnW) btnW.style.cssText += ACTIVE;
+            } else if (mode === "spectrogram") {
+                if (secW) secW.style.display = "none";
+                if (secS) secS.style.display = "";
+                if (btnS) btnS.style.cssText += ACTIVE;
+                renderSpectrogram(cId, rawSpectrogram);
+            } else {
+                if (secW) secW.style.display = "";
+                if (secS) secS.style.display = "";
+                if (btnB) btnB.style.cssText += ACTIVE;
+                renderSpectrogram(cId, rawSpectrogram);
+            }
+        };
+
+        /* -- Waveform canvas renderer -- */
+        function renderWaveform(cId, data) {
+            const canvas = document.getElementById("waveform-canvas-" + cId);
+            if (!canvas) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const W = Math.max(rect.width || 600, 200), H = 160;
+            canvas.width = W; canvas.height = H;
+            const ctx = canvas.getContext("2d");
+            const N = data.length;
+            const stepX = W / (N - 1);
+            const midY = H / 2;
+
+            const fillGrad = ctx.createLinearGradient(0, 0, W, 0);
+            fillGrad.addColorStop(0, "rgba(124,92,255,0.16)");
+            fillGrad.addColorStop(1, "rgba(34,211,238,0.10)");
+
+            const lineGrad = ctx.createLinearGradient(0, 0, W, 0);
+            lineGrad.addColorStop(0, "#7C5CFF");
+            lineGrad.addColorStop(0.5, "#A78BFA");
+            lineGrad.addColorStop(1, "#22D3EE");
+
+            /* Animated reveal */
+            const DURATION = 900;
+            const startTime = performance.now();
+
+            function drawFrame(now) {
+                const t = Math.min((now - startTime) / DURATION, 1);
+                const eased = 1 - Math.pow(1 - t, 3);
+                const revealX = eased * W;
+
+                ctx.clearRect(0, 0, W, H);
+                ctx.fillStyle = "#070710";
+                ctx.fillRect(0, 0, W, H);
+
+                /* Grid */
+                ctx.strokeStyle = "rgba(255,255,255,0.04)";
+                ctx.lineWidth = 1;
+                [-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75].forEach(v => {
+                    const y = ((1 - v) / 2) * H;
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+                });
+
+                /* Clip to revealed portion */
+                ctx.save();
+                ctx.beginPath(); ctx.rect(0, 0, revealX, H); ctx.clip();
+
+                /* Fill */
+                ctx.beginPath();
+                ctx.moveTo(0, midY);
+                data.forEach((v, i) => ctx.lineTo(i * stepX, midY - v * midY * 0.92));
+                ctx.lineTo((N - 1) * stepX, midY);
+                ctx.closePath();
+                ctx.fillStyle = fillGrad;
+                ctx.fill();
+
+                /* Line */
+                ctx.beginPath();
+                ctx.lineWidth = 1.75; ctx.strokeStyle = lineGrad;
+                ctx.lineJoin = "round";
+                data.forEach((v, i) => {
+                    const x = i * stepX, y = midY - v * midY * 0.92;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+                ctx.restore();
+
+                /* Glowing leading edge */
+                if (t < 1) {
+                    ctx.save();
+                    ctx.strokeStyle = "rgba(34,211,238,0.65)";
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 12; ctx.shadowColor = "#22D3EE";
+                    ctx.beginPath(); ctx.moveTo(revealX, 0); ctx.lineTo(revealX, H); ctx.stroke();
+                    ctx.restore();
+                    requestAnimationFrame(drawFrame);
+                }
+            }
+            requestAnimationFrame(drawFrame);
+        }
+
+        /* -- Spectrogram canvas renderer (Magma) -- */
+        function magmaColor(t) {
+            t = Math.max(0, Math.min(1, t));
+            const stops = [
+                [0.000, [0, 0, 4]],
+                [0.143, [28, 16, 68]],
+                [0.286, [79, 18, 123]],
+                [0.429, [140, 41, 129]],
+                [0.571, [196, 78, 107]],
+                [0.714, [237, 121, 83]],
+                [0.857, [252, 180, 103]],
+                [1.000, [252, 253, 191]],
+            ];
+            for (let i = 0; i < stops.length - 1; i++) {
+                const [t0, c0] = stops[i], [t1, c1] = stops[i + 1];
+                if (t >= t0 && t <= t1) {
+                    const u = (t - t0) / (t1 - t0);
+                    return [Math.round(c0[0] + u * (c1[0] - c0[0])),
+                    Math.round(c0[1] + u * (c1[1] - c0[1])),
+                    Math.round(c0[2] + u * (c1[2] - c0[2]))];
+                }
+            }
+            return [252, 253, 191];
+        }
+
+        function renderSpectrogram(cId, matrix) {
+            const canvas = document.getElementById("spectrogram-canvas-" + cId);
+            if (!canvas || !matrix || !matrix.length) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const W = Math.max(rect.width || 600, 200), H = 160;
+            canvas.width = W; canvas.height = H;
+            const ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#000004"; ctx.fillRect(0, 0, W, H);
+
+            const numMels = matrix.length, numSteps = matrix[0].length;
+            const cellW = W / numSteps, cellH = H / numMels;
+
+            let minV = Infinity, maxV = -Infinity;
+            matrix.forEach(row => row.forEach(v => { if (v < minV) minV = v; if (v > maxV) maxV = v; }));
+            const range = maxV - minV || 1;
+
+            for (let m = 0; m < numMels; m++) {
+                for (let s = 0; s < numSteps; s++) {
+                    const norm = (matrix[m][s] - minV) / range;
+                    const [r, g, b] = magmaColor(Math.pow(norm, 0.65));
+                    ctx.fillStyle = `rgb(${r},${g},${b})`;
+                    ctx.fillRect(s * cellW, (numMels - 1 - m) * cellH, Math.ceil(cellW), Math.ceil(cellH));
+                }
+            }
+        }
+
+        /* -- Boot -- */
+        function boot() { renderWaveform(CID, rawWaveform); }
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+        else boot();
+    })();
+</script>
+{% endwith %}

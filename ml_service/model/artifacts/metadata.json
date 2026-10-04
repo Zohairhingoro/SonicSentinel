@@ -1,0 +1,125 @@
+{
+  "version": "1.0.2",
+  "trained_on": "2026-09-27",
+  "metrics": {
+    "accuracy": 0.524032,
+    "macro_f1": 0.427631,
+    "precision": 0.485593,
+    "recall": 0.455543
+  },
+  "classes": [
+    "Machinery Fault",
+    "Glass Breaking",
+    "Alarm or Siren",
+    "Vehicle Horn",
+    "Animal Sound",
+    "Gunshot",
+    "Panic Scream",
+    "Aggression or Violent Conflict",
+    "Person Asking for Help",
+    "Background Noise"
+  ],
+  "feature_type": "mfcc_mel_chroma_zcr_rms_spectral",
+  "sample_rate": 22050,
+  "model_type": "XGBoost",
+  "model_version": "xgb_v1.0",
+  "best_hyperparameters": {
+    "n_estimators": 500,
+    "learning_rate": 0.05,
+    "max_depth": 6,
+    "subsample": 0.7,
+    "colsample_bytree": 0.7,
+    "reg_alpha": 0.5,
+    "reg_lambda": 2.0
+  },
+  "validation_metrics": {
+    "accuracy": 0.468904,
+    "macro_f1": 0.39951,
+    "macro_precision": 0.487702,
+    "macro_recall": 0.411845
+  },
+  "test_metrics": {
+    "accuracy": 0.524032,
+    "macro_f1": 0.427631,
+    "macro_precision": 0.485593,
+    "macro_recall": 0.455543,
+    "weighted_f1": 0.467153,
+    "sample_count": 2143
+  },
+  "critical_class_recalls": {
+    "gunshot": {
+      "label": "Gunshot",
+      "val_recall": 0.6557,
+      "test_recall": 0.9672,
+      "test_precision": 0.5206,
+      "test_f1": 0.6769,
+      "target": 0.85
+    },
+    "glass_breaking": {
+      "label": "Glass Breaking",
+      "val_recall": 0.3388,
+      "test_recall": 0.1901,
+      "test_precision": 0.4259,
+      "test_f1": 0.2629,
+      "target": 0.85
+    },
+    "panic_scream": {
+      "label": "Panic Scream",
+      "val_recall": 0.193,
+      "test_recall": 0.1207,
+      "test_precision": 0.3684,
+      "test_f1": 0.1818,
+      "target": 0.85
+    },
+    "aggression": {
+      "label": "Aggression / Violent Conflict",
+      "val_recall": 0.0364,
+      "test_recall": 0.0796,
+      "test_precision": 0.3214,
+      "test_f1": 0.1277,
+      "target": 0.85
+    },
+    "person_asking_for_help": {
+      "label": "Person Asking for Help",
+      "val_recall": 0.8636,
+      "test_recall": 0.787,
+      "test_precision": 0.7798,
+      "test_f1": 0.7834,
+      "target": 0.85
+    }
+  },
+  "noise_robustness": {
+    "conditions": [
+      {
+        "label": "Clean (no noise)",
+        "accuracy": 0.4433,
+        "macro_f1": 0.3863
+      },
+      {
+        "label": "Mild  (SNR 20 dB)",
+        "accuracy": 0.45,
+        "macro_f1": 0.4008,
+        "accuracy_delta": 0.0067
+      },
+      {
+        "label": "Moderate (SNR 10 dB)",
+        "accuracy": 0.4233,
+        "macro_f1": 0.3697,
+        "accuracy_delta": -0.02
+      },
+      {
+        "label": "Severe (SNR  5 dB)",
+        "accuracy": 0.3,
+        "macro_f1": 0.2382,
+        "accuracy_delta": -0.1433
+      }
+    ],
+    "clean_accuracy": 0.4433
+  },
+  "export_timestamp": "2026-09-27T13:16:32Z",
+  "srs_targets": {
+    "accuracy_target": 0.85,
+    "macro_f1_target": 0.8,
+    "critical_recall_target": 0.85
+  }
+}

@@ -1,0 +1,230 @@
+{% comment %}
+Event Filter Form Partial — components/event_filter_form.html
+Usage:
+{% include "components/event_filter_form.html" with form=form is_admin=is_admin active_filter_count=active_filter_count
+%}
+
+Submits as GET to preserve shareable URLs.
+All filtering is done server-side by list_audio_events; no JS filtering.
+{% endcomment %}
+
+<form id="event-filter-form" method="get" action="" aria-label="Event search and filter form"
+  class="bg-slate-900/70 border border-slate-800/80 rounded-3xl backdrop-blur-xl shadow-2xl overflow-hidden">
+  {# ── Collapsible header ── #}
+  <button type="button" id="filter-toggle-btn" aria-expanded="true" aria-controls="filter-panel"
+    class="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-800/30 transition-colors duration-200 group">
+    <div class="flex items-center space-x-3">
+      <div
+        class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+        </svg>
+      </div>
+      <span class="text-sm font-bold text-slate-200">Search &amp; Filter</span>
+      {% if active_filter_count %}
+      <span id="filter-active-badge"
+        class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">{{
+        active_filter_count }} active</span>
+      {% else %}
+      <span id="filter-active-badge"
+        class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hidden"></span>
+      {% endif %}
+    </div>
+    <svg id="filter-chevron" class="w-4 h-4 text-slate-400 transition-transform duration-300 rotate-0" fill="none"
+      stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+    </svg>
+  </button>
+
+  {# ── Collapsible panel ── #}
+  <div id="filter-panel" class="border-t border-slate-800/60">
+
+    {# Form-level errors (cross-field) #}
+    {% if form.non_field_errors %}
+    <div class="mx-6 mt-4 p-3 rounded-xl bg-rose-950/70 border border-rose-500/40 text-rose-300 text-xs space-y-1"
+      role="alert">
+      {% for err in form.non_field_errors %}
+      <p>{{ err }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+
+      {# ── Text search ── #}
+      <div class="xl:col-span-2 space-y-1.5">
+        <label for="filter-search" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          {{ form.search.label }}
+        </label>
+        {{ form.search }}
+        {% if form.search.errors %}
+        <p class="text-[11px] text-rose-400 font-medium mt-0.5">{{ form.search.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {# ── Category ── #}
+      <div class="space-y-1.5">
+        <label for="filter-category" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          {{ form.category.label }}
+        </label>
+        {{ form.category }}
+        {% if form.category.errors %}
+        <p class="text-[11px] text-rose-400 font-medium mt-0.5">{{ form.category.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {# ── Severity ── #}
+      <div class="space-y-1.5">
+        <label for="filter-severity" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          {{ form.severity.label }}
+        </label>
+        {{ form.severity }}
+        {% if form.severity.errors %}
+        <p class="text-[11px] text-rose-400 font-medium mt-0.5">{{ form.severity.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {# ── Quality ── #}
+      <div class="space-y-1.5">
+        <label for="filter-quality" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          {{ form.quality.label }}
+        </label>
+        {{ form.quality }}
+        {% if form.quality.errors %}
+        <p class="text-[11px] text-rose-400 font-medium mt-0.5">{{ form.quality.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {# ── Review status ── #}
+      <div class="space-y-1.5">
+        <label for="filter-review-status"
+          class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          {{ form.review_status.label }}
+        </label>
+        {{ form.review_status }}
+        {% if form.review_status.errors %}
+        <p class="text-[11px] text-rose-400 font-medium mt-0.5">{{ form.review_status.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {# ── Date range ── #}
+      <div class="space-y-1.5">
+        <label for="filter-start-date" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          {{ form.start_date.label }}
+        </label>
+        {{ form.start_date }}
+        {% if form.start_date.errors %}
+        <p class="text-[11px] text-rose-400 font-medium mt-0.5">{{ form.start_date.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="filter-end-date" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          {{ form.end_date.label }}
+        </label>
+        {{ form.end_date }}
+        {% if form.end_date.errors %}
+        <p class="text-[11px] text-rose-400 font-medium mt-0.5">{{ form.end_date.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {# ── Confidence range ── #}
+      <div class="space-y-1.5">
+        <label for="filter-min-confidence"
+          class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          Confidence range
+        </label>
+        <div class="flex items-center gap-2">
+          {{ form.min_confidence }}
+          <span class="text-slate-500 text-xs flex-shrink-0">–</span>
+          {{ form.max_confidence }}
+        </div>
+        {% if form.min_confidence.errors %}
+        <p class="text-[11px] text-rose-400 font-medium">{{ form.min_confidence.errors.0 }}</p>
+        {% endif %}
+        {% if form.max_confidence.errors %}
+        <p class="text-[11px] text-rose-400 font-medium">{{ form.max_confidence.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {# ── Admin: user filter ── #}
+      {% if is_admin %}
+      <div class="space-y-1.5">
+        <label for="filter-user"
+          class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          {{ form.user.label }}
+          <span
+            class="px-1.5 py-px rounded text-[9px] font-bold uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Admin</span>
+        </label>
+        {{ form.user }}
+        {% if form.user.errors %}
+        <p class="text-[11px] text-rose-400 font-medium mt-0.5">{{ form.user.errors.0 }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>{# /grid #}
+
+    {# ── Action row ── #}
+    <div class="px-6 pb-5 flex items-center justify-between gap-3 border-t border-slate-800/40 pt-4">
+      <button type="submit" id="filter-submit-btn" class="btn btn-primary">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <span>Apply Filters</span>
+      </button>
+
+      <a href="?" id="filter-clear-btn" class="btn btn-secondary" aria-label="Clear all filters">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        <span>Clear</span>
+      </a>
+    </div>
+
+  </div>{# /panel #}
+</form>
+
+<script>
+  (() => {
+    "use strict";
+    const btn = document.getElementById("filter-toggle-btn");
+    const panel = document.getElementById("filter-panel");
+    const chev = document.getElementById("filter-chevron");
+    const badge = document.getElementById("filter-active-badge");
+
+    function setExpanded(open) {
+      panel.style.display = open ? "" : "none";
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      chev.classList.toggle("rotate-180", !open);
+      localStorage.setItem("filterPanelOpen", open ? "1" : "0");
+    }
+
+    // Restore saved preference; default open when filters are active
+    const saved = localStorage.getItem("filterPanelOpen");
+    const active = badge && !badge.classList.contains("hidden");
+    setExpanded(active || saved !== "0");
+
+    btn.addEventListener("click", () => {
+      setExpanded(panel.style.display === "none");
+    });
+
+    // Live active-filter badge count
+    const form = document.getElementById("event-filter-form");
+    form.addEventListener("input", () => {
+      const fields = form.querySelectorAll("input, select");
+      let count = 0;
+      fields.forEach(el => {
+        if (el.value && el.value.trim()) count++;
+      });
+      if (count) {
+        badge.textContent = count + " active";
+        badge.classList.remove("hidden");
+      } else {
+        badge.classList.add("hidden");
+      }
+    });
+  })();
+</script>

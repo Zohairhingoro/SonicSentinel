@@ -1,0 +1,222 @@
+{% comment %}
+Reusable Chronological Sound Event Timeline Component
+Usage: {% include "components/timeline.html" with page_obj=events_page title="Sound Event Timeline" %}
+{% endcomment %}
+
+<div
+    class="bg-slate-900/70 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl shadow-2xl relative overflow-hidden space-y-6">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
+        <div class="flex items-center space-x-3">
+            <div
+                class="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <span>{{ title|default:"Chronological Sound Event Timeline" }}</span>
+                    {% if page_obj.paginator.count is not None %}
+                    <span
+                        class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                        {{ page_obj.paginator.count }} Events
+                    </span>
+                    {% endif %}
+                </h3>
+                <p class="text-xs text-slate-400">Most recent acoustic detections ordered chronologically</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2 text-xs">
+            <span class="text-slate-500 font-medium">Auto-sorted:</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+                Most Recent First
+            </span>
+        </div>
+    </div>
+
+    <!-- Timeline List -->
+    {% if page_obj and page_obj.object_list %}
+    <div
+        class="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-gradient-to-b before:from-cyan-500 before:via-blue-600/40 before:to-slate-800">
+        {% for event in page_obj.object_list %}
+        <div class="relative group">
+            <!-- Timeline Node Indicator Icon -->
+            <div class="absolute -left-[27px] sm:-left-[35px] top-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center transition-all shadow-md 
+                        {% if event.severity == 'Critical' %}
+                            bg-rose-950 border-rose-500 text-rose-400 shadow-rose-500/30 group-hover:scale-110
+                        {% elif event.severity == 'High' %}
+                            bg-amber-950 border-amber-500 text-amber-400 shadow-amber-500/30 group-hover:scale-110
+                        {% elif event.severity == 'Medium' %}
+                            bg-yellow-950 border-yellow-500 text-yellow-400 shadow-yellow-500/30 group-hover:scale-110
+                        {% elif event.severity == 'Low' %}
+                            bg-blue-950 border-blue-500 text-blue-400 shadow-blue-500/30 group-hover:scale-110
+                        {% else %}
+                            bg-emerald-950 border-emerald-500 text-emerald-400 shadow-emerald-500/30 group-hover:scale-110
+                        {% endif %}">
+
+                {% if event.severity == 'Critical' %}
+                <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                {% elif event.severity == 'High' %}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {% elif event.severity == 'Medium' %}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                {% elif event.severity == 'Low' %}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+                {% else %}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {% endif %}
+            </div>
+
+            <!-- Event Card -->
+            <div
+                class="bg-slate-900/90 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4 sm:p-5 transition-all shadow-lg hover:shadow-xl space-y-3">
+                <div
+                    class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/60 pb-3">
+                    <div class="flex items-center space-x-2.5 flex-wrap">
+                        <!-- Severity Badge -->
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold border uppercase tracking-wider flex items-center space-x-1.5
+                                    {% if event.severity == 'Critical' %}
+                                        bg-rose-950/80 border-rose-500/50 text-rose-300 shadow-sm shadow-rose-950
+                                    {% elif event.severity == 'High' %}
+                                        bg-amber-950/80 border-amber-500/50 text-amber-300 shadow-sm shadow-amber-950
+                                    {% elif event.severity == 'Medium' %}
+                                        bg-yellow-950/80 border-yellow-500/50 text-yellow-300 shadow-sm shadow-yellow-950
+                                    {% elif event.severity == 'Low' %}
+                                        bg-blue-950/80 border-blue-500/50 text-blue-300 shadow-sm shadow-blue-950
+                                    {% else %}
+                                        bg-emerald-950/80 border-emerald-500/50 text-emerald-300 shadow-sm shadow-emerald-950
+                                    {% endif %}">
+                            <span>{{ event.severity }} Severity</span>
+                        </span>
+
+                        <!-- Category Title -->
+                        <span class="text-sm font-semibold text-slate-100">
+                            {{ event.category }}
+                        </span>
+                    </div>
+
+                    <!-- Timestamp -->
+                    <div class="flex items-center space-x-1.5 text-xs text-slate-400 font-mono">
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{{ event.uploaded_at|date:"M d, Y H:i:s" }}</span>
+                    </div>
+                </div>
+
+                <!-- Details Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div>
+                        <span class="text-slate-500 block text-[11px]">Audio ID</span>
+                        <span class="font-mono text-cyan-400 font-medium">{{ event.audio_id }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[11px]">Filename</span>
+                        <span class="text-slate-200 truncate block font-medium" title="{{ event.filename }}">{{
+                            event.filename }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[11px]">Status</span>
+                        <span
+                            class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                            {{ event.status }}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block text-[11px]">Quality</span>
+                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium 
+                                    {% if event.quality == 'Good' %}bg-emerald-950/60 text-emerald-300 border border-emerald-700/50
+                                    {% elif event.quality == 'Acceptable' %}bg-blue-950/60 text-blue-300 border border-blue-700/50
+                                    {% elif event.quality == 'Poor' %}bg-amber-950/60 text-amber-300 border border-amber-700/50
+                                    {% else %}bg-rose-950/60 text-rose-300 border border-rose-700/50{% endif %}">
+                            {{ event.quality }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Footer details: Duration, Rate, User -->
+                <div
+                    class="pt-2 border-t border-slate-800/40 flex items-center justify-between text-[11px] text-slate-400">
+                    <div class="flex items-center space-x-3">
+                        <span>Duration: <strong class="text-slate-200 font-mono">{{ event.duration|floatformat:1
+                                }}s</strong></span>
+                        <span>Sample Rate: <strong class="text-slate-200 font-mono">{{ event.sampling_rate }}
+                                Hz</strong></span>
+                    </div>
+                    <div>
+                        Uploaded by: <span class="text-slate-300 font-medium">{% if event.uploaded_by %}{{
+                            event.uploaded_by.username }}{% else %}System{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State Component Partial -->
+    {% include "components/empty_state.html" with title="No Sound Events Found" subtitle="There are currently no
+    recorded sound events matching the selected timeline filter criteria." action_text="Upload Audio Clip"
+    action_url="/audio/upload/" %}
+    {% endif %}
+
+    <!-- Pagination Footer -->
+    {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    <div class="flex items-center justify-between border-t border-slate-800/80 pt-4 text-xs">
+        <div class="text-slate-400">
+            Page <span class="font-bold text-slate-200">{{ page_obj.number }}</span> of <span
+                class="font-bold text-slate-200">{{ page_obj.paginator.num_pages }}</span>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}"
+                class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all font-medium flex items-center space-x-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                <span>Previous</span>
+            </a>
+            {% else %}
+            <span
+                class="px-3.5 py-1.5 rounded-xl bg-slate-900 text-slate-600 border border-slate-800 cursor-not-allowed font-medium">
+                Previous
+            </span>
+            {% endif %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}"
+                class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold border border-cyan-500 transition-all flex items-center space-x-1 shadow-md shadow-cyan-500/20">
+                <span>Next</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+            {% else %}
+            <span
+                class="px-3.5 py-1.5 rounded-xl bg-slate-900 text-slate-600 border border-slate-800 cursor-not-allowed font-medium">
+                Next
+            </span>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>

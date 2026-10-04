@@ -1,0 +1,15 @@
+{# Reusable Token-Driven Status Pill Component Partial #}
+{% with st=status|default:'Uploaded'|lower %}
+<span class="status-pill 
+               {% if 'alert' in st %}status-alert-generated
+               {% elif 'manual' in st or 'review' in st and 'manual' in st %}status-manual-review
+               {% elif 'reviewed' in st %}status-reviewed
+               {% elif 'uncertain' in st %}status-uncertain
+               {% elif 'classified' in st %}status-classified
+               {% elif 'closed' in st %}status-closed
+               {% else %}status-uploaded{% endif %}
+               {{ extra_classes|default:'' }}" {% if id %}id="{{ id }}" {% endif %}>
+  <span class="status-dot"></span>
+  <span>{{ label|default:status|default:'Uploaded' }}</span>
+</span>
+{% endwith %}

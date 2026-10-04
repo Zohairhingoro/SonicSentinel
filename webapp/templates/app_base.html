@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+{% load static permissions_tags %}
+
+{% block app_layout %}
+<div class="min-h-screen flex flex-col" style="background-color:var(--color-bg);color:var(--color-text-primary);">
+
+    {# ═══════════════════════════════════════════════════════ TOP NAV #}
+    <header class="nav-shell">
+        <div class="max-w-[var(--content-max-w)] mx-auto px-5 sm:px-8 h-full flex items-center justify-between">
+
+            {# ── Brand ── #}
+            <a href="/" class="flex items-center gap-3 group flex-shrink-0">
+                {# SonicSentinel AI — acoustic waveform mark #}
+                <div class="w-9 h-9 rounded-[var(--radius-md)] flex items-center justify-center flex-shrink-0
+                            shadow-[0_0_16px_rgba(124,92,255,0.30)]
+                            group-hover:shadow-[0_0_26px_rgba(124,92,255,0.55)]
+                            transition-shadow duration-200" style="background:var(--gradient-accent);">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Centre dot -->
+                        <circle cx="10" cy="10" r="1.6" fill="white" />
+                        <!-- Inner arc pair -->
+                        <path d="M6.8 7.2 A4.5 4.5 0 0 0 6.8 12.8" stroke="white" stroke-width="1.7"
+                            stroke-linecap="round" fill="none" />
+                        <path d="M13.2 7.2 A4.5 4.5 0 0 1 13.2 12.8" stroke="white" stroke-width="1.7"
+                            stroke-linecap="round" fill="none" />
+                        <!-- Outer arc pair -->
+                        <path d="M4.1 4.6 A8.3 8.3 0 0 0 4.1 15.4" stroke="white" stroke-width="1.4"
+                            stroke-linecap="round" fill="none" opacity="0.65" />
+                        <path d="M15.9 4.6 A8.3 8.3 0 0 1 15.9 15.4" stroke="white" stroke-width="1.4"
+                            stroke-linecap="round" fill="none" opacity="0.65" />
+                    </svg>
+                </div>
+                <div class="leading-none">
+                    <span class="text-accent-gradient font-heading font-bold tracking-tight text-[1.05rem] block">
+                        SonicSentinel AI
+                    </span>
+                    <span class="text-[0.6rem] uppercase tracking-[0.12em] font-semibold block mt-0.5"
+                        style="color:var(--color-text-muted);">Acoustic Intelligence</span>
+                </div>
+            </a>
+
+            {# ── Current page context (centre) ── #}
+            <div class="hidden md:flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
+                <span class="text-sm font-semibold font-heading" style="color:var(--color-text-primary);">
+                    {% block page_title %}{% endblock %}
+                </span>
+                {% block page_subtitle_badge %}{% endblock %}
+            </div>
+
+            {# ── Right-side actions ── #}
+            <div class="flex items-center gap-3">
+                {% if request.user.is_authenticated %}
+
+                {# User pill #}
+                <div class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full"
+                    style="background:var(--color-surface-raised);border:1px solid var(--color-border);">
+                    {# Avatar #}
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0"
+                        style="background:var(--gradient-accent);box-shadow:var(--shadow-glow-sm);">
+                        {{ request.user.username|slice:":2"|upper }}
+                    </div>
+                    <div class="flex flex-col leading-none text-left">
+                        <span class="text-[12px] font-semibold block"
+                            style="color:var(--color-text-primary);font-family:var(--font-body);">
+                            {{ request.user.username }}
+                        </span>
+                        <span class="flex items-center gap-1 mt-1">
+                            <span class="w-1.5 h-1.5 rounded-full flex-shrink-0
+                                    {% if user_is_admin %}bg-purple-400
+                                    {% elif user_is_reviewer %}bg-blue-400
+                                    {% elif user_is_security %}bg-rose-400
+                                    {% elif user_is_maintenance %}bg-amber-400
+                                    {% else %}bg-cyan-400{% endif %}"></span>
+                            <span class="text-[10.5px] font-medium tracking-wide
+                                    {% if user_is_admin %}text-purple-300
+                                    {% elif user_is_reviewer %}text-blue-300
+                                    {% elif user_is_security %}text-rose-300
+                                    {% elif user_is_maintenance %}text-amber-300
+                                    {% else %}text-cyan-300{% endif %}" style="font-family:var(--font-body);">
+                                {% if user_is_admin %}Admin
+                                {% elif user_is_reviewer %}Reviewer
+                                {% elif user_is_security %}Security
+                                {% elif user_is_maintenance %}Maintenance
+                                {% else %}User{% endif %}
+                            </span>
+                        </span>
+                    </div>
+                </div>
+
+                {# Profile ghost link #}
+                <a href="/accounts/profile/" class="btn-ghost hidden sm:inline-flex">Profile</a>
+
+                {# Logout #}
+                <form action="/accounts/logout/" method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-ghost text-rose-300 hover:text-rose-200"
+                        style="border-color:transparent;">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Logout</span>
+                    </button>
+                </form>
+                {% else %}
+                <a href="/accounts/login/" class="btn-primary">Sign In</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    {# ═══════════════════════════════════════ BODY: SIDEBAR + CONTENT #}
+    <div class="flex-1 flex max-w-[var(--content-max-w)] w-full mx-auto px-4 sm:px-6 lg:px-8
+                py-[var(--space-4)] gap-[var(--space-4)]">
+
+        {# ── Role-aware sidebar ── #}
+        <aside class="hidden md:block flex-shrink-0" style="width:var(--sidebar-width);">
+            <nav class="sticky top-[calc(var(--nav-height)+var(--space-4))] flex flex-col gap-0.5 p-3" style="background:var(--color-surface);
+                        border:1px solid var(--color-border);
+                        box-shadow:var(--shadow-card);">
+
+                <p class="px-3 pb-1.5 pt-0.5 text-[10px] font-bold uppercase tracking-[0.12em]"
+                    style="color:var(--color-text-muted);">Navigation</p>
+
+                {# Overview #}
+                <a href="/" class="nav-link {% if request.path == '/' or request.path == '/home/' %}active{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Overview</span>
+                </a>
+
+                {# Dashboard #}
+                {% if user_is_admin %}
+                <a href="/dashboard/admin/"
+                    class="nav-link {% if '/dashboard/admin' in request.path %}active{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    <span>Admin Dashboard</span>
+                </a>
+                <a href="/dashboard/analytics-charts/"
+                    class="nav-link {% if '/dashboard/analytics-charts' in request.path %}active{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span>Analytics Charts</span>
+                </a>
+                {% else %}
+                <a href="/dashboard/user/" class="nav-link {% if '/dashboard' in request.path %}active{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                {% endif %}
+
+                {# Live Monitor (staff+) #}
+                {% if user_is_staff %}
+                <a href="/live/" class="nav-link {% if '/live' in request.path %}active{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15.536 8.464a5 5 0 010 7.072M12 9a3 3 0 000 6m-3.536-6.536A5 5 0 004.93 12a5 5 0 004.93 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Live Monitor</span>
+                </a>
+                {% endif %}
+
+                {# Divider #}
+                <div class="my-1 mx-3" style="height:1px;background:var(--color-border);"></div>
+
+                {# Audio Events (all) #}
+                <a href="/audio/events/" class="nav-link {% if '/audio/events' in request.path %}active{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19V6l12-2v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-2" />
+                    </svg>
+                    <span>Audio Events</span>
+                </a>
+
+                {# Single Upload (all) #}
+                <a href="/audio/upload/"
+                    class="nav-link {% if '/audio/upload' in request.path and '/batch' not in request.path %}active{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <span>Upload Audio</span>
+                </a>
+
+                {# Batch Upload (security + admin) #}
+                {% if user_is_security or user_is_admin %}
+                <a href="/audio/upload/batch/"
+                    class="nav-link {% if '/audio/upload/batch' in request.path %}active{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                    </svg>
+                    <span>Batch Upload</span>
+                </a>
+                {% endif %}
+
+                {# Divider #}
+                <div class="my-1 mx-3" style="height:1px;background:var(--color-border);"></div>
+
+                {# Alert Engine (security + maintenance + admin) #}
+                {% if user_is_security or user_is_maintenance or user_is_admin %}
+                <a href="/alerts/" class="nav-link {% if '/alerts' in request.path %}active{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span>Alert Engine</span>
+                </a>
+                {% endif %}
+
+                {# Manual Review (reviewer + admin) #}
+                {% if user_is_reviewer or user_is_admin %}
+                <a href="/reviews/" class="nav-link {% if '/reviews' in request.path %}active{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Manual Review</span>
+                </a>
+                {% endif %}
+
+                {# Audit Trail (security + admin) #}
+                {% if user_is_security or user_is_admin %}
+                <a href="/audit/" class="nav-link {% if '/audit' in request.path %}active{% endif %}">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Audit Trail</span>
+                </a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        {# ── Main content area ── #}
+        <main class="flex-1 min-w-0">
+            {% if messages %}
+            <div class="mb-5 flex flex-col gap-3">
+                {% for message in messages %}
+                <div class="flex items-center gap-3 px-4 py-3 text-sm font-medium
+                                    backdrop-blur-md border
+                                    {% if message.tags == 'success' %}
+                                        bg-emerald-950/70 border-emerald-500/40 text-emerald-300
+                                    {% elif message.tags == 'error' %}
+                                        bg-rose-950/70 border-rose-500/40 text-rose-300
+                                    {% else %}
+                                        border-[var(--color-border)] text-slate-200
+                                    {% endif %}"
+                    style="{% if not message.tags or message.tags == 'info' %}background:var(--color-surface);{% endif %}">
+                    {% if message.tags == 'success' %}
+                    <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {% elif message.tags == 'error' %}
+                    <svg class="w-4 h-4 text-rose-400 flex-shrink-0" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    {% else %}
+                    <svg class="w-4 h-4 flex-shrink-0" style="color:var(--color-accent-end);" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════ FOOTER #}
+    <footer class="mt-auto" style="background:var(--color-surface);border-top:1px solid var(--color-border);">
+        {# Top accent gradient line #}
+        <div class="footer-gradient-line"></div>
+
+        <div class="max-w-[var(--content-max-w)] mx-auto px-5 sm:px-8 py-10">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
+                {# Brand column #}
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-2.5">
+                        {# SonicSentinel AI — acoustic waveform mark (footer size) #}
+                        <div class="w-9 h-9 rounded-[var(--radius-md)] flex items-center justify-center flex-shrink-0"
+                            style="background:var(--gradient-accent);box-shadow:var(--shadow-glow-sm);">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="10" cy="10" r="1.6" fill="white" />
+                                <path d="M6.8 7.2 A4.5 4.5 0 0 0 6.8 12.8" stroke="white" stroke-width="1.7"
+                                    stroke-linecap="round" fill="none" />
+                                <path d="M13.2 7.2 A4.5 4.5 0 0 1 13.2 12.8" stroke="white" stroke-width="1.7"
+                                    stroke-linecap="round" fill="none" />
+                                <path d="M4.1 4.6 A8.3 8.3 0 0 0 4.1 15.4" stroke="white" stroke-width="1.4"
+                                    stroke-linecap="round" fill="none" opacity="0.65" />
+                                <path d="M15.9 4.6 A8.3 8.3 0 0 1 15.9 15.4" stroke="white" stroke-width="1.4"
+                                    stroke-linecap="round" fill="none" opacity="0.65" />
+                            </svg>
+                        </div>
+                        <div class="leading-none">
+                            <span
+                                class="text-accent-gradient font-heading font-bold tracking-tight text-base block">SonicSentinel
+                                AI</span>
+                            <span class="text-[10px] uppercase tracking-[0.1em] font-medium block mt-0.5"
+                                style="color:var(--color-text-muted);">Acoustic Intelligence</span>
+                        </div>
+                    </div>
+                    <p class="text-xs leading-relaxed" style="color:var(--color-text-muted);">
+                        AI-powered real-time sound event detection system built for
+                        TechWiz7 NextWave AI &amp; ML — AcousticX Intelligence theme.
+                    </p>
+                </div>
+
+                {# Quick links column #}
+                <div class="flex flex-col gap-2">
+                    <p class="text-[10px] font-bold uppercase tracking-widest mb-1"
+                        style="color:var(--color-text-muted);">
+                        Quick Links
+                    </p>
+                    <a href="/audio/upload/" class="text-xs transition-colors hover:text-white"
+                        style="color:var(--color-text-muted);">Upload Audio</a>
+                    <a href="/live/" class="text-xs transition-colors hover:text-white"
+                        style="color:var(--color-text-muted);">Live Monitor</a>
+                    <a href="/alerts/" class="text-xs transition-colors hover:text-white"
+                        style="color:var(--color-text-muted);">Alert Engine</a>
+                    <a href="/audio/events/" class="text-xs transition-colors hover:text-white"
+                        style="color:var(--color-text-muted);">Audio Events</a>
+                </div>
+
+                {# System info column #}
+                <div class="flex flex-col gap-2">
+                    <p class="text-[10px] font-bold uppercase tracking-widest mb-1"
+                        style="color:var(--color-text-muted);">
+                        System
+                    </p>
+                    <div class="flex items-center gap-2 text-xs" style="color:var(--color-text-muted);">
+                        <span
+                            class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block flex-shrink-0"></span>
+                        ML Inference Service
+                    </div>
+                    <div class="flex items-center gap-2 text-xs" style="color:var(--color-text-muted);">
+                        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                            style="background:var(--color-accent-end);"></span>
+                        TensorFlow.js GTM (client-side)
+                    </div>
+                    <div class="flex items-center gap-2 text-xs" style="color:var(--color-text-muted);">
+                        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                            style="background:var(--color-accent-start);"></span>
+                        Django ORM / SQLite
+                    </div>
+                </div>
+            </div>
+
+            {# Bottom bar #}
+            <div class="mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3"
+                style="border-top:1px solid var(--color-border);">
+                <p class="text-[11px]" style="color:var(--color-text-muted);">
+                    &copy; 2026 SonicSentinel AI — Competition Prototype &middot;
+                    TechWiz7 (Aptech) NextWave AI &amp; ML
+                </p>
+                <div class="flex items-center gap-1.5 text-[11px]"
+                    style="color:var(--color-text-muted);font-family:var(--font-body);">
+                    <span class="px-2.5 py-1"
+                        style="background:var(--gradient-accent-subtle);border:1px solid var(--color-border);">
+                        AcousticX Intelligence
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+{% endblock %}

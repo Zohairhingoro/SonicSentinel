@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SonicSentinel AI - Real-Time Sound Event Detection{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        vesperBg: 'var(--color-bg)',
+                        vesperSurface: 'var(--color-surface)',
+                        accentStart: 'var(--color-accent-start)',
+                        accentEnd: 'var(--color-accent-end)',
+                        textPrimary: 'var(--color-text-primary)',
+                        textMuted: 'var(--color-text-muted)',
+                        vesperBorder: 'var(--color-border)',
+                    },
+                    fontFamily: {
+                        sans: ['var(--font-body)', 'sans-serif'],
+                        heading: ['var(--font-heading)', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        sm: 'var(--radius-sm)',
+                        md: 'var(--radius-md)',
+                        lg: 'var(--radius-lg)',
+                    },
+                    boxShadow: {
+                        glow: 'var(--shadow-glow)',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/scroll-reveal.js' %}" defer></script>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body
+    class="bg-[var(--color-bg)] text-[var(--color-text-primary)] font-sans min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-slate-950">
+    {% block app_layout %}
+    {% if messages %}
+    <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 mt-4 space-y-3">
+        {% for message in messages %}
+        <div
+            class="p-4 rounded-[var(--radius-lg)] text-sm border font-medium flex items-center justify-between shadow-lg backdrop-blur-md {% if message.tags == 'success' %}bg-emerald-950/80 border-emerald-500/50 text-emerald-300 shadow-emerald-950/30{% elif message.tags == 'error' %}bg-rose-950/80 border-rose-500/50 text-rose-300 shadow-rose-950/30{% else %}bg-[var(--color-surface)] border-[var(--color-border)] text-slate-200 shadow-slate-950/30{% endif %}">
+            <div class="flex items-center space-x-3">
+                {% if message.tags == 'success' %}
+                <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                {% elif message.tags == 'error' %}
+                <svg class="w-5 h-5 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                {% else %}
+                <svg class="w-5 h-5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {% endif %}
+                <span>{{ message }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-[var(--space-4)]">
+        {% block content %}{% endblock %}
+    </main>
+    {% endblock %}
+</body>
+
+</html>

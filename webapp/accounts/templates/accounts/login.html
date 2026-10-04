@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - SonicSentinel AI{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto py-12 px-4 sm:px-6">
+    <div class="card card-glass p-8 relative overflow-hidden">
+        <!-- Ambient glow background -->
+        <div class="absolute -top-24 -right-24 w-60 h-60 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 mb-8 text-center">
+            <div class="inline-flex p-3 bg-blue-500/10 border border-blue-500/20 text-blue-400 mb-4 shadow-lg shadow-blue-500/10">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                Sign In to SonicSentinel
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">Access real-time sound event detection system console</p>
+        </div>
+
+        {% if form.errors %}
+            <div class="mb-6 p-4 bg-rose-950/80 border border-rose-500/50 text-rose-300 text-xs space-y-2 shadow-lg shadow-rose-950/40">
+                <div class="flex items-center space-x-2 font-semibold text-rose-400 text-xs uppercase tracking-wider">
+                    <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>Authentication Error</span>
+                </div>
+                <ul class="space-y-1 text-rose-200/90 pl-1">
+                    {% if form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
+                            <li class="flex items-center space-x-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span>
+                                <span>{{ error }}</span>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="flex items-center space-x-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span>
+                            <span>Invalid username or password credentials. Please verify and try again.</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'accounts:login' %}" class="space-y-5 relative z-10">
+            {% csrf_token %}
+
+            <div class="space-y-1.5">
+                <label for="id_username" class="form-label">Username</label>
+                <input type="text" name="username" id="id_username" required autofocus
+                    class="form-control"
+                    placeholder="Enter your username">
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="id_password" class="form-label">Password</label>
+                <div class="relative flex items-center">
+                    <input type="password" name="password" id="id_password" required
+                        class="form-control pr-10"
+                        placeholder="Enter your password">
+                    <button type="button" class="absolute right-3 text-slate-400 hover:text-slate-200 focus:outline-none toggle-password-btn" data-target="id_password" aria-label="Toggle password visibility">
+                        <svg class="w-5 h-5 eye-icon-show" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <svg class="w-5 h-5 eye-icon-hide hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.046 10.046 0 013.122-.563c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l18 18"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Login Access Caution Callout -->
+            <div class="p-3.5 bg-amber-950/30 border border-amber-500/30 text-amber-200/90 text-xs space-y-2 shadow-lg shadow-amber-950/10">
+                <div class="flex items-center space-x-2 font-semibold text-amber-400 text-[11px] tracking-wide uppercase">
+                    <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span>System Access Caution</span>
+                </div>
+                <ul class="space-y-1 text-[11px] text-amber-200/80">
+                    <li class="flex items-center space-x-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+                        <span>All login attempts are logged in the <strong>Audit Trail</strong>.</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+                        <span>Ensure you are accessing under your assigned operational role.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" class="btn btn-primary w-full">
+                    <span>Sign In</span>
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-6 pt-6 border-t border-slate-800/80 text-center text-xs text-slate-400">
+            Need an account?
+            <a href="{% url 'accounts:register' %}" class="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors">Register here</a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".toggle-password-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var targetId = this.getAttribute("data-target");
+            var input = document.getElementById(targetId);
+            if (!input) return;
+            var isPassword = input.type === "password";
+            input.type = isPassword ? "text" : "password";
+            var showIcon = this.querySelector(".eye-icon-show");
+            var hideIcon = this.querySelector(".eye-icon-hide");
+            if (showIcon && hideIcon) {
+                showIcon.classList.toggle("hidden", isPassword);
+                hideIcon.classList.toggle("hidden", !isPassword);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

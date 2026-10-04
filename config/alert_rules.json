@@ -1,0 +1,76 @@
+{
+  "rules": {
+    "Machinery Fault": {
+      "severity": "Medium",
+      "action": "Maintenance alert + recommended inspection",
+      "min_confidence": 0.70,
+      "require_repeat": false
+    },
+    "Glass Breaking": {
+      "severity": "High",
+      "action": "High-severity security alert",
+      "min_confidence": 0.75,
+      "require_repeat": false
+    },
+    "Alarm or Siren": {
+      "severity": "High",
+      "action": "High-severity attention alert",
+      "min_confidence": 0.75,
+      "require_repeat": false
+    },
+    "Vehicle Horn": {
+      "severity": "Low",
+      "action": "Traffic/environmental event (non-critical)",
+      "min_confidence": 0.60,
+      "require_repeat": false
+    },
+    "Animal Sound": {
+      "severity": "Informational",
+      "action": "Non-critical/context-dependent",
+      "min_confidence": 0.60,
+      "require_repeat": false
+    },
+    "Gunshot": {
+      "severity": "Critical",
+      "action": "Critical security alert - verified gunshot detected",
+      "min_confidence": 0.85,
+      "require_repeat": true
+    },
+    "Panic Scream": {
+      "severity": "Critical",
+      "action": "Critical safety alert - panic scream detected",
+      "min_confidence": 0.80,
+      "require_repeat": false
+    },
+    "Aggression or Violent Conflict": {
+      "severity": "High",
+      "action": "High-severity conflict alert",
+      "min_confidence": 0.80,
+      "require_repeat": false
+    },
+    "Person Asking for Help": {
+      "severity": "Critical",
+      "action": "Critical help request alert",
+      "min_confidence": 0.80,
+      "require_repeat": false
+    },
+    "Background Noise": {
+      "severity": "Informational",
+      "action": "Non-critical ambient noise",
+      "min_confidence": 0.50,
+      "require_repeat": false
+    }
+  },
+  "default_rule": {
+    "severity": "Medium",
+    "action": "Unknown / Manual Review Required",
+    "min_confidence": 0.50,
+    "require_repeat": false
+  },
+  "comparison_thresholds": {
+    "confidence_threshold": 0.70,
+    "top_two_margin_threshold": 0.15,
+    "max_confidence_diff_acceptable": 0.15,
+    "min_confidence_acceptable": 0.60
+  }
+}

@@ -1,0 +1,147 @@
+{% extends "app_base.html" %}
+
+{% block title %}Manual Review Queue — SonicSentinel AI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  {# ── Header Banner ── #}
+  <div
+    class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+    <div class="absolute -right-20 -top-20 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-20 -bottom-20 w-72 h-72 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div class="flex items-center space-x-3">
+          <div
+            class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-slate-100">Manual Review Queue</h2>
+        </div>
+        <p class="text-xs text-slate-400">
+          Sound events routed for human expert verification and model output correction.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span id="queue-count-badge"
+          class="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+          {% if total_count == 1 %}
+          1 Event Awaiting Review
+          {% else %}
+          {{ total_count }} Events Awaiting Review
+          {% endif %}
+        </span>
+        <span class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 text-xs font-medium">
+          Oldest First
+        </span>
+      </div>
+    </div>
+  </div>
+
+  {# ── Access Notification Pill ── #}
+  <div
+    class="flex items-center justify-between px-4 py-2.5 rounded-2xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400">
+    <div class="flex items-center space-x-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+      <span>Authorized Access: <strong>Audio Reviewer</strong> / <strong>Administrator</strong></span>
+    </div>
+    <span class="text-slate-500">Queue auto-sorted by submission time (ascending)</span>
+  </div>
+
+  {# ── Review Queue Table / List ── #}
+  {% if queue_events %}
+  <div class="overflow-hidden bg-slate-900/80 border border-slate-800/90 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="border-b border-slate-800 bg-slate-950/60 text-slate-400 font-semibold uppercase tracking-wider">
+            <th scope="col" class="py-3.5 px-4">Audio ID / File</th>
+            <th scope="col" class="py-3.5 px-4">Uploaded</th>
+            <th scope="col" class="py-3.5 px-4">Category</th>
+            <th scope="col" class="py-3.5 px-4">Quality</th>
+            <th scope="col" class="py-3.5 px-4">Conf Diff</th>
+            <th scope="col" class="py-3.5 px-4">Reason Routed</th>
+            <th scope="col" class="py-3.5 px-4 text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60 text-slate-200">
+          {% for event in queue_events %}
+          <tr class="hover:bg-slate-800/40 transition-colors duration-150 group">
+            <td class="py-3.5 px-4">
+              <div class="font-semibold text-slate-100 group-hover:text-cyan-400 transition-colors">
+                {{ event.audio_id }}
+              </div>
+              <div class="text-[11px] text-slate-400 font-mono truncate max-w-[180px]">
+                {{ event.filename }}
+              </div>
+            </td>
+            <td class="py-3.5 px-4 text-slate-400 whitespace-nowrap">
+              {{ event.uploaded_at|date:"Y-m-d H:i:s" }}
+            </td>
+            <td class="py-3.5 px-4 whitespace-nowrap">
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-800 text-slate-200 border border-slate-700">
+                {{ event.category }}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 whitespace-nowrap">
+              {% if event.quality == 'Good' %}
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+                Good
+              </span>
+              {% elif event.quality == 'Acceptable' %}
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-blue-500/10 text-blue-300 border border-blue-500/30">
+                Acceptable
+              </span>
+              {% elif event.quality == 'Poor' %}
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                Poor
+              </span>
+              {% else %}
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-rose-500/10 text-rose-300 border border-rose-500/30">
+                Unusable
+              </span>
+              {% endif %}
+            </td>
+            <td class="py-3.5 px-4 font-mono font-medium text-slate-300 whitespace-nowrap">
+              {{ event.confidence_diff_display }}
+            </td>
+            <td class="py-3.5 px-4">
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                {{ event.routing_reason }}
+              </span>
+            </td>
+            <td class="py-3.5 px-4 text-right whitespace-nowrap">
+              <a href="{% url 'reviews:detail' audio_id=event.audio_id %}" class="btn btn-primary btn-sm">
+                <span>Review</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% else %}
+  {% include "components/empty_state.html" with title="Manual Review Queue Clear" subtitle="There are currently no audio
+  events awaiting manual review. Sound events flagged with model disagreement, low confidence, poor quality, or
+  overlapping sounds will appear here automatically." action_text="View All Audio Events" action_url="/audio/" %}
+  {% endif %}
+
+</div>
+{% endblock %}

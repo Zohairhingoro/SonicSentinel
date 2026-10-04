@@ -1,0 +1,237 @@
+<!-- Python vs GTM Model Prediction Side-by-Side Comparison Component (FE-10) -->
+{% if comparison %}
+<div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-2xl space-y-6"
+    id="model-comparison-component-{{ comparison.audio_event.audio_id }}">
+
+    <!-- Card Header: Title & Meta -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+        <div class="flex items-center space-x-3">
+            <div
+                class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500/20 to-indigo-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0 shadow-inner">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                    <span>Dual-Engine Model Prediction Comparison</span>
+                </h3>
+                <p class="text-xs text-slate-400">
+                    Audio Event ID: <span class="font-mono text-cyan-400 font-bold">{{ comparison.audio_event.audio_id
+                        }}</span>
+                    {% if comparison.audio_event.filename %}&middot; {{ comparison.audio_event.filename }}{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs font-mono text-slate-400">
+            <span class="px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800">
+                Diff: <strong class="text-cyan-300">{{ comparison.confidence_difference|floatformat:4 }}</strong>
+            </span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-950/80 border border-slate-800">
+                Margin: <strong class="text-slate-200">{{ comparison.top_two_margin|floatformat:4 }}</strong>
+            </span>
+        </div>
+    </div>
+
+    <!-- Prominent Match Status Badge PLACED BETWEEN THE TWO CARDS (Center Bridge) -->
+    <div class="flex items-center justify-center my-2">
+        <div class="flex items-center gap-3 px-6 py-2.5 rounded-full border shadow-2xl transition-all duration-300 {{ comparison.badge_css_class }}"
+            id="comparison-status-badge">
+            <span class="relative flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-current"></span>
+            </span>
+            <div class="flex items-center gap-2">
+                <span class="text-[11px] uppercase font-bold tracking-wider opacity-80">Consistency Status:</span>
+                <span class="text-sm font-extrabold tracking-wide uppercase">{{ comparison.match_status }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side-by-Side Model Prediction Grid (2 Columns, stacking on mobile) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
+
+        <!-- Column 1: Python ML Model (Server-side) -->
+        <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800/90 space-y-4 shadow-xl flex flex-col justify-between"
+            id="python-model-card">
+            <div class="space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <div
+                            class="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-xs font-bold font-mono shadow-inner">
+                            Py</div>
+                        <span class="text-sm font-bold text-slate-100">Python ML Model</span>
+                    </div>
+                    <span
+                        class="text-[10px] font-mono text-cyan-300 bg-cyan-950/60 px-2.5 py-0.5 rounded-full border border-cyan-500/30">
+                        Server-Side &middot; v{{ comparison.python_prediction.model_version|default:"1.0.0" }}
+                    </span>
+                </div>
+
+                {% if comparison.python_prediction %}
+                <!-- Top Predicted Class Box -->
+                <div
+                    class="p-4 rounded-xl bg-slate-900/90 border border-cyan-500/30 flex items-center justify-between shadow-inner">
+                    <div>
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Predicted
+                            Category</span>
+                        <span class="text-base font-bold text-cyan-300">{{ comparison.python_prediction.predicted_class
+                            }}</span>
+                    </div>
+                    <div class="text-right">
+                        <span
+                            class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Confidence</span>
+                        <span class="text-base font-bold font-mono text-cyan-400">
+                            {{ comparison.python_prediction.top3.0.percentage }}%
+                            <span class="text-[10px] font-normal text-slate-400 block">({{
+                                comparison.python_prediction.confidence|floatformat:4 }})</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Top 3 Classes Confidence Bars (Animated Fill with Accent Gradient) -->
+                <div class="space-y-3 pt-2">
+                    <span class="text-xs font-bold text-slate-300 uppercase tracking-wider block">Top 3 Class Confidence
+                        Breakdown</span>
+                    {% for item in comparison.python_prediction.top3 %}
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-semibold text-slate-200 truncate max-w-[180px]">{{ item.category }}</span>
+                            <span class="font-mono text-cyan-400 font-bold text-[11px]">{{ item.percentage }}% <span
+                                    class="text-slate-500 font-normal">({{ item.confidence_formatted }})</span></span>
+                        </div>
+                        <div
+                            class="w-full h-2.5 rounded-full bg-slate-800/90 overflow-hidden p-0.5 border border-slate-700/60 shadow-inner">
+                            <div class="h-full rounded-full transition-all duration-700 ease-out animate-pulse"
+                                style="background:var(--gradient-accent); width: {{ item.percentage }}%;"></div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-xs text-slate-500 italic">No detailed confidence scores available.</p>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-6 rounded-xl bg-slate-900/50 border border-slate-800 text-center space-y-2">
+                    <p class="text-xs font-semibold text-slate-400">Python Model Prediction Unavailable</p>
+                    <p class="text-[11px] text-slate-500">Inference request pending or server-side service unreached.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Column 2: GTM Model (Client-side TensorFlow.js) -->
+        <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800/90 space-y-4 shadow-xl flex flex-col justify-between"
+            id="gtm-model-card">
+            <div class="space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <div
+                            class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-xs font-bold font-mono shadow-inner">
+                            JS</div>
+                        <span class="text-sm font-bold text-slate-100">GTM TF.js Model</span>
+                    </div>
+                    <span
+                        class="text-[10px] font-mono text-indigo-300 bg-indigo-950/60 px-2.5 py-0.5 rounded-full border border-indigo-500/30">
+                        Client-Side &middot; v{{ comparison.gtm_prediction.model_version|default:"1.0.0" }}
+                    </span>
+                </div>
+
+                {% if comparison.gtm_prediction %}
+                <!-- Top Predicted Class Box -->
+                <div
+                    class="p-4 rounded-xl bg-slate-900/90 border border-indigo-500/30 flex items-center justify-between shadow-inner">
+                    <div>
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Predicted
+                            Category</span>
+                        <span class="text-base font-bold text-indigo-300">{{ comparison.gtm_prediction.predicted_class
+                            }}</span>
+                    </div>
+                    <div class="text-right">
+                        <span
+                            class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Confidence</span>
+                        <span class="text-base font-bold font-mono text-indigo-400">
+                            {{ comparison.gtm_prediction.top3.0.percentage }}%
+                            <span class="text-[10px] font-normal text-slate-400 block">({{
+                                comparison.gtm_prediction.top3.0.confidence_formatted }})</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Top 3 Classes Confidence Bars (Animated Fill with Accent Gradient) -->
+                <div class="space-y-3 pt-2">
+                    <span class="text-xs font-bold text-slate-300 uppercase tracking-wider block">Top 3 Class Confidence
+                        Breakdown</span>
+                    {% for item in comparison.gtm_prediction.top3 %}
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-semibold text-slate-200 truncate max-w-[180px]">{{ item.category }}</span>
+                            <span class="font-mono text-indigo-400 font-bold text-[11px]">{{ item.percentage }}% <span
+                                    class="text-slate-500 font-normal">({{ item.confidence_formatted }})</span></span>
+                        </div>
+                        <div
+                            class="w-full h-2.5 rounded-full bg-slate-800/90 overflow-hidden p-0.5 border border-slate-700/60 shadow-inner">
+                            <div class="h-full rounded-full transition-all duration-700 ease-out animate-pulse"
+                                style="background:var(--gradient-accent); width: {{ item.percentage }}%;"></div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-xs text-slate-500 italic">No detailed confidence scores available.</p>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-6 rounded-xl bg-slate-900/50 border border-slate-800 text-center space-y-2">
+                    <p class="text-xs font-semibold text-slate-400">GTM Client-Side Prediction Pending</p>
+                    <p class="text-[11px] text-slate-500">TensorFlow.js evaluates audio in-browser when event playback
+                        is triggered.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Comparative Analysis Footer -->
+    <div
+        class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex flex-wrap items-center justify-between gap-4 text-xs">
+        <div class="flex items-center space-x-6">
+            <div>
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Confidence
+                    Difference</span>
+                <span class="font-bold font-mono text-slate-200">
+                    {{ comparison.confidence_difference|floatformat:4 }} <span
+                        class="text-[10px] font-normal text-slate-500">|Py - GTM|</span>
+                </span>
+            </div>
+            <div>
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Top-Two
+                    Margin</span>
+                <span class="font-bold font-mono text-slate-200">{{ comparison.top_two_margin|floatformat:4 }}</span>
+            </div>
+            {% if comparison.audio_event.quality %}
+            <div>
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Audio
+                    Quality</span>
+                <span class="font-bold text-slate-200">{{ comparison.audio_event.quality }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="flex items-center space-x-2">
+            {% if comparison.is_uncertain %}
+            <span
+                class="px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">Uncertain
+                Flagged</span>
+            {% endif %}
+            {% if comparison.is_overlapping %}
+            <span
+                class="px-2.5 py-1 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">Overlapping
+                Sound</span>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endif %}

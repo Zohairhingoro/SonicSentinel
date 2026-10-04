@@ -1,0 +1,56 @@
+{# Reusable Token-Driven Modal Component Partial #}
+<div id="{{ modal_id|default:id|default:'app-modal' }}" class="modal-backdrop {{ backdrop_classes|default:'' }}"
+  role="dialog" aria-modal="true" aria-labelledby="{{ modal_id|default:id|default:'app-modal' }}-title">
+  <div class="modal-panel {{ panel_classes|default:'' }}">
+    <div class="modal-header">
+      <h3 id="{{ modal_id|default:id|default:'app-modal' }}-title" class="modal-title">{{ title|default:'Modal Title' }}
+      </h3>
+      <button type="button" class="modal-close" onclick="closeModal('{{ modal_id|default:id|default:'app-modal' }}')"
+        aria-label="Close modal">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      {% if body_content %}
+      {{ body_content|safe }}
+      {% endif %}
+    </div>
+
+    {% if footer_content or show_default_footer %}
+    <div class="modal-footer">
+      {% if footer_content %}
+      {{ footer_content|safe }}
+      {% else %}
+      <button type="button" class="btn btn-ghost"
+        onclick="closeModal('{{ modal_id|default:id|default:'app-modal' }}')">Cancel</button>
+      <button type="button" class="btn btn-primary"
+        onclick="confirmModal('{{ modal_id|default:id|default:'app-modal' }}')">Confirm</button>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  if (typeof openModal !== 'function') {
+    function openModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+  }
+  if (typeof closeModal !== 'function') {
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    }
+  }
+</script>

@@ -1,0 +1,66 @@
+{
+  "report_type": "critical_class_recall_audit",
+  "timestamp": "2026-09-27T12:54:31Z",
+  "source_model": "XGBoost",
+  "source_model_version": "xgb_v1.0",
+  "source_eval_timestamp": "2026-09-27T12:31:59Z",
+  "evaluation_split": "test",
+  "sample_count": 2143,
+  "recall_target": 0.85,
+  "passing_count": 1,
+  "failing_count": 4,
+  "total_critical_count": 5,
+  "all_targets_met": false,
+  "critical_classes": {
+    "gunshot": {
+      "label": "Gunshot",
+      "recall": 0.9672,
+      "precision": 0.5206,
+      "f1_score": 0.6769,
+      "support": 183,
+      "target_threshold": 0.85,
+      "gap_from_target": 0.1172,
+      "passed": true
+    },
+    "glass_breaking": {
+      "label": "Glass Breaking",
+      "recall": 0.1901,
+      "precision": 0.4259,
+      "f1_score": 0.2629,
+      "support": 121,
+      "target_threshold": 0.85,
+      "gap_from_target": -0.6599,
+      "passed": false
+    },
+    "panic_scream": {
+      "label": "Panic Scream",
+      "recall": 0.1207,
+      "precision": 0.3684,
+      "f1_score": 0.1818,
+      "support": 58,
+      "target_threshold": 0.85,
+      "gap_from_target": -0.7293,
+      "passed": false
+    },
+    "aggression": {
+      "label": "Aggression / Violent Conflict",
+      "recall": 0.0796,
+      "precision": 0.3214,
+      "f1_score": 0.1277,
+      "support": 113,
+      "target_threshold": 0.85,
+      "gap_from_target": -0.7704,
+      "passed": false
+    },
+    "person_asking_for_help": {
+      "label": "Person Asking for Help",
+      "recall": 0.787,
+      "precision": 0.7798,
+      "f1_score": 0.7834,
+      "support": 108,
+      "target_threshold": 0.85,
+      "gap_from_target": -0.063,
+      "passed": false
+    }
+  }
+}

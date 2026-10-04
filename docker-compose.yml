@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  ml_service:
+    build:
+      context: ./ml_service
+      dockerfile: Dockerfile
+    container_name: sonicsentinel_ml_service
+    ports:
+      - "8001:8001"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8001
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./config:/app/config:ro
+      - ./ml_service/model/artifacts:/app/model/artifacts:ro
+    restart: unless-stopped
+
+  webapp:
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+    container_name: sonicsentinel_webapp
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=webapp.settings.dev
+      - PYTHONUNBUFFERED=1
+      - ML_SERVICE_URL=http://ml_service:8001
+    volumes:
+      - ./webapp:/app
+      - ./config:/app/config:ro
+      - ./media:/app/media
+    depends_on:
+      - ml_service
+    restart: unless-stopped

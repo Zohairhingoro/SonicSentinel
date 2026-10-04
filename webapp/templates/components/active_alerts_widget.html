@@ -1,0 +1,272 @@
+<!-- Active Alerts Polling Widget Component -->
+<div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-4"
+    id="active-alerts-widget-card">
+
+    <!-- Widget Header -->
+    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div class="flex items-center space-x-2.5">
+            <div
+                class="w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/25 flex items-center justify-center text-rose-400">
+                <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-slate-100">Active Sound Event Alerts</h3>
+                <p class="text-[11px] text-slate-400">Unacknowledged & active security/maintenance alerts</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <span
+                class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold bg-rose-500/10 border border-rose-500/20 text-rose-400 shadow-sm"
+                id="active-alert-count-pill">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+                <span id="active-alert-count">0</span> Active
+            </span>
+            <span class="text-[10px] text-slate-500 font-mono hidden sm:inline">&middot; Polling (5s)</span>
+        </div>
+    </div>
+
+    <!-- Active Alerts List Container -->
+    <div class="space-y-2.5 min-h-[120px] max-h-[380px] overflow-y-auto pr-1" id="active-alerts-list">
+        <div class="p-4 space-y-3" id="active-alerts-loading">
+            <div class="h-14 w-full skeleton-box"></div>
+            <div class="h-14 w-full skeleton-box"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Alerts Polling Client-Side Script -->
+<script>
+    (function () {
+        "use strict";
+
+        const API_URL = "{% url 'alerts:active_api' %}";
+        const POLLING_INTERVAL_MS = 5000;
+
+        function getCsrfToken() {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith("csrftoken=")) {
+                    return decodeURIComponent(cookie.substring(10));
+                }
+            }
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            if (meta) return meta.getAttribute("content");
+            return "";
+        }
+
+        function getSeverityBadgeClass(severity) {
+            const sev = (severity || "").toLowerCase();
+            if (sev === "critical") {
+                return "badge-severity-critical";
+            } else if (sev === "high") {
+                return "badge-severity-high";
+            } else if (sev === "medium") {
+                return "badge-severity-medium";
+            } else if (sev === "low") {
+                return "badge-severity-low";
+            }
+            return "badge-severity-informational";
+        }
+
+        window.handleAlertAction = async function (alertId, action) {
+            const url = `/alerts/${alertId}/${action}/`;
+            const token = getCsrfToken();
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": token,
+                    },
+                });
+
+                if (!response.ok) {
+                    console.warn(`[AlertAction] Action ${action} failed with status:`, response.status);
+                    return;
+                }
+
+                const resData = await response.json();
+                const rowEl = document.getElementById(`alert-row-${alertId}`);
+
+                if (action === "acknowledge" || action === "dismiss") {
+                    if (rowEl) {
+                        rowEl.style.transition = "all 0.3s ease";
+                        rowEl.style.opacity = "0";
+                        rowEl.style.transform = "scale(0.95)";
+                        setTimeout(() => {
+                            rowEl.remove();
+                            const countEl = document.getElementById("active-alert-count");
+                            if (countEl) {
+                                const cur = parseInt(countEl.textContent, 10) || 0;
+                                countEl.textContent = Math.max(0, cur - 1);
+                            }
+                        }, 300);
+                    }
+                } else if (action === "escalate") {
+                    const badgeEl = document.getElementById(`alert-severity-badge-${alertId}`);
+                    if (badgeEl) {
+                        badgeEl.textContent = "Critical";
+                        badgeEl.className = "badge badge-severity badge-severity-critical";
+                    }
+                    const statusBadgeEl = document.getElementById(`alert-status-badge-${alertId}`);
+                    if (statusBadgeEl) {
+                        statusBadgeEl.innerHTML = '<span class="status-pill status-alert-generated"><span class="status-dot"></span>Escalated</span>';
+                    }
+                    const escBtn = document.getElementById(`escalate-btn-${alertId}`);
+                    if (escBtn) {
+                        escBtn.remove();
+                    }
+                }
+            } catch (err) {
+                console.error(`[AlertAction] Failed to execute ${action} on alert ${alertId}:`, err);
+            }
+        };
+
+        function renderAlerts(data) {
+            const listEl = document.getElementById("active-alerts-list");
+            const countEl = document.getElementById("active-alert-count");
+            if (!listEl) return;
+
+            if (countEl) {
+                countEl.textContent = data.count || 0;
+            }
+
+            if (!data.alerts || data.alerts.length === 0) {
+                listEl.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon text-emerald-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="empty-state-title">No Active Alerts</h3>
+                    <p class="empty-state-sub">All classified acoustic sound events are currently clear or acknowledged.</p>
+                </div>
+            `;
+                return;
+            }
+
+            const htmlRows = data.alerts.map((alert) => {
+                const badgeClass = getSeverityBadgeClass(alert.severity);
+
+                const ackButton = alert.can_acknowledge ? `
+                <button type="button"
+                        onclick="handleAlertAction(${alert.id}, 'acknowledge')"
+                        class="btn btn-secondary btn-sm"
+                        title="Acknowledge Alert">
+                    <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Ack</span>
+                </button>
+            ` : '';
+
+                const dismissButton = alert.can_dismiss ? `
+                <button type="button"
+                        onclick="handleAlertAction(${alert.id}, 'dismiss')"
+                        class="btn btn-ghost btn-sm"
+                        title="Dismiss Alert">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    <span>Dismiss</span>
+                </button>
+            ` : '';
+
+                const escalateButton = alert.can_escalate ? `
+                <button type="button"
+                        id="escalate-btn-${alert.id}"
+                        onclick="handleAlertAction(${alert.id}, 'escalate')"
+                        class="btn btn-danger btn-sm"
+                        title="Escalate Alert to Critical">
+                    <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                    <span>Escalate</span>
+                </button>
+            ` : '';
+
+                return `
+                <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner" id="alert-row-${alert.id}">
+                    <div class="space-y-1 min-w-0">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold text-slate-200 truncate">${alert.category}</span>
+                            <span class="badge badge-severity ${badgeClass}" id="alert-severity-badge-${alert.id}">
+                                ${alert.severity}
+                            </span>
+                            <span id="alert-status-badge-${alert.id}">
+                                ${alert.status === 'escalated' ? '<span class="status-pill status-alert-generated"><span class="status-dot"></span>Escalated</span>' : ''}
+                            </span>
+                        </div>
+                        <div class="flex items-center space-x-3 text-[11px] text-slate-400">
+                            <span>ID: <strong class="font-mono text-cyan-400">${alert.audio_id}</strong></span>
+                            <span>&middot;</span>
+                            <span title="${alert.created_at_formatted}">${alert.time_ago}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                        ${ackButton}
+                        ${dismissButton}
+                        ${escalateButton}
+                        <a href="${alert.event_detail_url}" class="btn btn-primary btn-sm">
+                            <span>View</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            `;
+            }).join("");
+
+            listEl.innerHTML = htmlRows;
+        }
+
+        async function pollActiveAlerts() {
+            try {
+                const resp = await fetch(API_URL, {
+                    headers: { "Accept": "application/json" }
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    renderAlerts(data);
+                } else {
+                    renderError();
+                }
+            } catch (err) {
+                console.warn("[ActiveAlertsWidget] Polling request failed:", err);
+                renderError();
+            }
+        }
+
+        function renderError() {
+            const listEl = document.getElementById("active-alerts-list");
+            if (!listEl) return;
+            listEl.innerHTML = `
+            <div class="error-state p-4">
+                <div class="error-state-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h3 class="error-state-title">Alert Stream Error</h3>
+                <p class="error-state-sub">Failed to fetch active alerts from server.</p>
+                <button type="button" onclick="pollActiveAlerts()" class="btn btn-danger btn-sm">Retry Now</button>
+            </div>
+        `;
+        }
+
+        // Initial fetch on DOM load
+        document.addEventListener("DOMContentLoaded", function () {
+            pollActiveAlerts();
+            setInterval(pollActiveAlerts, POLLING_INTERVAL_MS);
+        });
+    })();
+</script>

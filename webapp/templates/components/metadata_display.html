@@ -1,0 +1,16 @@
+{% comment %}
+SonicSentinel AI — Reusable Audio Event Metadata Display Component Partial
+Renders extracted audio metadata fields: filename, format, duration, sampling rate,
+channels, bit depth, file size, upload timestamp, and quality classification.
+
+Usage:
+{% include "components/metadata_display.html" with event=event %}
+{% include "components/metadata_display.html" with metadata=validation_result.metadata %}
+{% include "components/metadata_display.html" with event=event title="Audio File Information" %}
+{% endcomment %}
+
+{% with m_filename=filename m_format=format m_duration=duration m_sampling_rate=sampling_rate m_channels=channels
+m_bit_depth=bit_depth m_file_size=file_size m_uploaded_at=uploaded_at m_quality=quality m_hash=hash m_audio_id=audio_id
+%}
+{% include "components/_metadata_display_card.html" %}
+{% endwith %}

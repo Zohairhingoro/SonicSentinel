@@ -1,0 +1,116 @@
+<!-- Admin Dashboard Summary Stat Cards Component -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <!-- 1. Total Audio Events -->
+    <div
+        class="group relative overflow-hidden p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 backdrop-blur-xl shadow-xl transition-all duration-300 hover:-translate-y-0.5">
+        <div
+            class="absolute -right-6 -top-6 w-20 h-20 bg-cyan-500/10 rounded-full blur-xl group-hover:bg-cyan-500/20 transition-all pointer-events-none">
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-bold uppercase tracking-wider text-[10px] text-cyan-400">Total Audio Events</span>
+            <div
+                class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z" />
+                </svg>
+            </div>
+        </div>
+        <div class="text-3xl font-extrabold text-slate-100 font-mono tracking-tight">
+            {{ summary_stats.total_audio_events|default:0 }}
+        </div>
+        <p class="text-[11px] text-slate-500 mt-1">Ingested & analyzed audio clips</p>
+    </div>
+
+    <!-- 2. Critical Alerts Count -->
+    <div
+        class="group relative overflow-hidden p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-rose-500/50 backdrop-blur-xl shadow-xl transition-all duration-300 hover:-translate-y-0.5">
+        <div
+            class="absolute -right-6 -top-6 w-20 h-20 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition-all pointer-events-none">
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-bold uppercase tracking-wider text-[10px] text-rose-400 flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                <span>Critical Alerts</span>
+            </span>
+            <div
+                class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+        </div>
+        <div class="text-3xl font-extrabold text-rose-400 font-mono tracking-tight">
+            {{ summary_stats.critical_alerts_count|default:0 }}
+        </div>
+        <p class="text-[11px] text-slate-500 mt-1">High-severity critical alerts raised</p>
+    </div>
+
+    <!-- 3. Average Confidence -->
+    <div
+        class="group relative overflow-hidden p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-indigo-500/50 backdrop-blur-xl shadow-xl transition-all duration-300 hover:-translate-y-0.5">
+        <div
+            class="absolute -right-6 -top-6 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all pointer-events-none">
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-bold uppercase tracking-wider text-[10px] text-indigo-400">Average Confidence</span>
+            <div
+                class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
+        <div class="text-3xl font-extrabold text-indigo-300 font-mono tracking-tight">
+            {% if summary_stats.average_confidence != None %}{{ summary_stats.average_confidence|floatformat:4 }}{% else
+            %}0.0000{% endif %}
+        </div>
+        <p class="text-[11px] text-slate-500 mt-1">Python model mean confidence score</p>
+    </div>
+
+    <!-- 4. Model Disagreement Count -->
+    <div
+        class="group relative overflow-hidden p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/50 backdrop-blur-xl shadow-xl transition-all duration-300 hover:-translate-y-0.5">
+        <div
+            class="absolute -right-6 -top-6 w-20 h-20 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-all pointer-events-none">
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-bold uppercase tracking-wider text-[10px] text-amber-400">Model Disagreements</span>
+            <div
+                class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+            </div>
+        </div>
+        <div class="text-3xl font-extrabold text-amber-300 font-mono tracking-tight">
+            {{ summary_stats.model_disagreement_count|default:0 }}
+        </div>
+        <p class="text-[11px] text-slate-500 mt-1">Python vs GTM classification mismatches</p>
+    </div>
+
+    <!-- 5. Poor-Quality Recording Count -->
+    <div
+        class="group relative overflow-hidden p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-orange-500/50 backdrop-blur-xl shadow-xl transition-all duration-300 hover:-translate-y-0.5">
+        <div
+            class="absolute -right-6 -top-6 w-20 h-20 bg-orange-500/10 rounded-full blur-xl group-hover:bg-orange-500/20 transition-all pointer-events-none">
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-bold uppercase tracking-wider text-[10px] text-orange-400">Poor-Quality Clips</span>
+            <div
+                class="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
+        <div class="text-3xl font-extrabold text-orange-400 font-mono tracking-tight">
+            {{ summary_stats.poor_quality_count|default:0 }}
+        </div>
+        <p class="text-[11px] text-slate-500 mt-1">Poor or unusable quality audio files</p>
+    </div>
+</div>

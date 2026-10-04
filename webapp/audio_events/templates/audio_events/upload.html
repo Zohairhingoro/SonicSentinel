@@ -1,0 +1,640 @@
+{% extends "app_base.html" %}
+{% load static %}
+
+{% block title %}Upload Audio — SonicSentinel AI{% endblock %}
+{% block page_title %}Audio Ingestion{% endblock %}
+{% block page_subtitle_badge %}
+<span class="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 border"
+    style="color:var(--color-accent-end);border-color:rgba(34,211,238,0.3);background:rgba(34,211,238,0.07);">
+    Single Upload
+</span>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-[var(--space-4)] max-w-5xl mx-auto">
+
+    {# Page Header #}
+    <div class="page-header">
+        <div class="page-header-body">
+            <div class="flex items-center gap-3">
+                <div class="page-header-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="page-header-title">Single Audio File Ingestion</h1>
+                    <p class="page-header-sub">Validate, store, and classify a single audio recording via dual-engine ML
+                        inference.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 border"
+                    style="color:var(--color-accent-end);border-color:rgba(34,211,238,0.25);background:rgba(34,211,238,0.06);">WAV</span>
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 border"
+                    style="color:var(--color-accent-end);border-color:rgba(34,211,238,0.25);background:rgba(34,211,238,0.06);">MP3</span>
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 border"
+                    style="color:var(--color-accent-end);border-color:rgba(34,211,238,0.25);background:rgba(34,211,238,0.06);">FLAC</span>
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 border"
+                    style="color:var(--color-accent-end);border-color:rgba(34,211,238,0.25);background:rgba(34,211,238,0.06);">OGG</span>
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 border"
+                    style="color:var(--color-accent-end);border-color:rgba(34,211,238,0.25);background:rgba(34,211,238,0.06);">M4A</span>
+            </div>
+        </div>
+    </div>
+
+    {# Server-side validation banner if rendered without JS #}
+    {% if validation_result %}
+    {% if validation_result.accepted %}
+    <div
+        class="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-sm font-medium flex items-center justify-between shadow-lg">
+        <div class="flex items-center gap-2.5">
+            <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span><strong>Validation Passed — Extracted Metadata:</strong> Audio file passed all ingestion rules
+                successfully!</span>
+        </div>
+        {% if audio_event %}
+        <a href="/audio/events/{{ audio_event.audio_id }}/"
+            class="text-xs font-bold text-emerald-400 underline hover:text-emerald-200">
+            View Event Record &rarr;
+        </a>
+        {% endif %}
+    </div>
+    {% else %}
+    <div
+        class="p-4 rounded-2xl bg-rose-950/80 border border-rose-500/50 text-rose-300 text-sm font-medium flex items-center gap-2.5 shadow-lg">
+        <svg class="w-5 h-5 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span><strong>Validation Rejected:</strong> {{ validation_result.reason|default:"The audio clip failed system
+            validation requirements." }}</span>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    {# Drag-and-Drop Ingestion Card #}
+    <div class="card" id="upload-card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">Upload Audio Recording</h2>
+                <p class="card-subtitle">Drag and drop audio clip or browse local system files</p>
+            </div>
+            <span
+                class="text-xs font-mono font-semibold text-slate-400 bg-slate-800/80 border border-slate-700 px-2.5 py-1 rounded-full">
+                Max Size: 50 MB
+            </span>
+        </div>
+
+        <form id="single-upload-form" method="post" enctype="multipart/form-data" novalidate class="mt-4">
+            {% csrf_token %}
+
+            {# Interactive Drag & Drop Dropzone #}
+            <div id="dropzone"
+                class="relative flex flex-col items-center justify-center gap-4 p-10 sm:p-14 border-2 border-dashed cursor-pointer transition-all duration-300 select-none group"
+                style="border-color:var(--color-border-strong);background:rgba(20,20,28,0.5);"
+                aria-label="Drop audio file or click to browse">
+
+                <div id="dropzone-glow"
+                    class="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-300"
+                    style="background:radial-gradient(ellipse at center,rgba(124,92,255,0.12) 0%,transparent 70%);">
+                </div>
+
+                <div id="dropzone-icon"
+                    class="w-16 h-16 flex items-center justify-center border rounded-2xl transition-all duration-300 group-hover:scale-105"
+                    style="background:rgba(124,92,255,0.1);border-color:rgba(124,92,255,0.25);color:#c4b5fd;">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                </div>
+
+                <div class="text-center space-y-1 relative z-10">
+                    <p id="dropzone-main-label" class="text-base font-bold" style="color:var(--color-text-primary);">
+                        Drag and drop your audio file here
+                    </p>
+                    <p class="text-xs" style="color:var(--color-text-muted);">
+                        or <button type="button" id="browse-btn"
+                            class="font-bold underline underline-offset-2 hover:text-cyan-300"
+                            style="color:var(--color-accent-end);">click to browse</button>
+                        &nbsp;&mdash;&nbsp; WAV, MP3, FLAC, OGG, M4A &middot; up to 30s recommended
+                    </p>
+                </div>
+
+                {# Selected File Chip #}
+                <div id="file-chip"
+                    class="hidden items-center gap-3 px-4 py-2.5 border rounded-xl relative z-10 transition-all shadow-md"
+                    style="background:rgba(34,211,238,0.08);border-color:rgba(34,211,238,0.3);">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19V6l12-2v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-2" />
+                        </svg>
+                    </div>
+                    <div class="space-y-0.5">
+                        <span id="file-chip-name" class="text-xs font-mono font-bold block"
+                            style="color:var(--color-accent-end);">--</span>
+                        <span id="file-chip-size" class="text-[11px] font-mono block"
+                            style="color:var(--color-text-muted);">--</span>
+                    </div>
+                    <button type="button" id="clear-file-btn"
+                        class="ml-2 text-rose-400 hover:text-rose-200 transition-colors p-1"
+                        aria-label="Remove selected file">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <input type="file" id="id_audio_file" name="audio_file" accept=".wav,.mp3,.flac,.ogg,.m4a,audio/*"
+                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" aria-hidden="true">
+            </div>
+
+            {# Upload Progress Bar & A4 Skeleton Loading State #}
+            <div id="upload-progress-container" class="hidden mt-5 space-y-3 p-4 border rounded-2xl"
+                style="background:rgba(20,20,28,0.7);border-color:var(--color-border);">
+                <div class="flex items-center justify-between text-xs" style="color:var(--color-text-muted);">
+                    <span id="progress-label" class="font-bold flex items-center gap-2">
+                        <svg class="w-4 h-4 text-cyan-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        <span>Uploading audio clip...</span>
+                    </span>
+                    <span id="progress-pct" class="font-mono font-bold text-sm"
+                        style="color:var(--color-accent-end);">0%</span>
+                </div>
+                <div class="w-full h-2 rounded-full overflow-hidden" style="background:var(--color-surface-raised);">
+                    <div id="progress-bar" class="h-full transition-all duration-300 rounded-full"
+                        style="width:0%;background:var(--gradient-accent);"></div>
+                </div>
+
+                {# A4 Skeleton Loading Component #}
+                <div id="inference-loading" class="hidden mt-4 pt-2">
+                    {% include "components/loading_state.html" with title="Running ML Inference..." type="widget"
+                    id="upload-inference-skeleton" %}
+                </div>
+            </div>
+
+            {# Action Buttons #}
+            <div class="mt-6 flex items-center justify-end gap-3">
+                <a href="/audio/" class="btn btn-ghost btn-sm">View All Events</a>
+                <button type="submit" id="upload-submit-btn" class="btn btn-primary btn-lg" disabled
+                    aria-disabled="true">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="submit-label">Validate &amp; Ingest</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {# A4 Error Panel #}
+    <div id="upload-error-panel" class="hidden">
+        {% include "components/error_state.html" with title="Upload or Validation Failed" message="The file could not be
+        validated or ingested." id="upload-error-state" %}
+        <div id="upload-error-detail" class="mt-3 p-4 border rounded-xl text-xs font-mono"
+            style="background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.25);color:#fca5a5;"></div>
+    </div>
+
+    {# Post-Upload Confirmation Result View (Two-Column Layout) #}
+    <div id="upload-result-panel"
+        class="{% if not validation_result or not validation_result.accepted %}hidden{% endif %} flex flex-col gap-[var(--space-4)]">
+
+        {# Banner Header #}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border rounded-2xl shadow-xl"
+            style="background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.3);">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">Audio Ingestion &amp;
+                        Classification Complete</h3>
+                    <p class="text-xs text-slate-300">Signal properties extracted &middot; Python ML model executed</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="result-audio-id"
+                    class="text-xs font-mono font-bold px-3 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-emerald-300">
+                    {% if audio_event %}Audio ID: {{ audio_event.audio_id }}{% endif %}
+                </span>
+                <a id="result-event-link"
+                    href="{% if audio_event %}/audio/events/{{ audio_event.audio_id }}/{% else %}#{% endif %}"
+                    class="btn btn-sm btn-success">
+                    View Event Detail &rarr;
+                </a>
+            </div>
+        </div>
+
+        {# Two-Column Result Grid #}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {# Left Column: Extracted Metadata Panel (FE-7) + Audio Player (FE-6) #}
+            <div class="flex flex-col gap-5">
+                {# FE-7 Metadata Panel #}
+                <div id="result-metadata-panel">
+                    {% include "components/metadata_display.html" with show_header=True title="Extracted Audio Metadata"
+                    event=audio_event card_class="result-meta-init" %}
+                </div>
+
+                {# FE-6 Audio Player Component #}
+                <div id="result-player-panel">
+                    {% include "components/audio_preview.html" with file_input_id="id_audio_file"
+                    id_suffix="upload_result" title="Selected Audio Clip Preview" event=audio_event auto_hide=False %}
+                </div>
+            </div>
+
+            {# Right Column: Model Prediction Comparison (FE-10) #}
+            <div class="flex flex-col gap-5" id="result-prediction-column">
+
+                {# Python ML Prediction Card #}
+                <div class="card p-5 space-y-4 shadow-xl" id="python-result-card">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-2.5 py-1 text-xs font-bold font-mono rounded-lg border"
+                                style="background:rgba(34,211,238,0.12);color:#67e8f9;border-color:rgba(34,211,238,0.3);">PY</span>
+                            <span class="font-bold text-slate-100 text-sm">Python Primary ML Prediction</span>
+                        </div>
+                        <span
+                            class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                            Server-Side FastAPI &middot; v<span id="py-pred-ver">1.0.0</span>
+                        </span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-xl border flex items-center justify-between shadow-inner"
+                            style="background:rgba(34,211,238,0.06);border-color:rgba(34,211,238,0.25);">
+                            <div>
+                                <span
+                                    class="text-[10px] uppercase tracking-wider font-bold block text-slate-400">Classified
+                                    Sound Category</span>
+                                <span id="py-pred-class" class="text-base font-bold text-cyan-300">
+                                    {% if audio_event %}{{ audio_event.category }}{% else %}--{% endif %}
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <span
+                                    class="text-[10px] uppercase tracking-wider font-bold block text-slate-400">Confidence
+                                    Score</span>
+                                <span id="py-pred-conf" class="text-lg font-bold font-mono text-cyan-400">--</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+                                <span
+                                    class="text-[10px] uppercase tracking-wider font-semibold block text-slate-400 mb-1">Severity
+                                    Level</span>
+                                <span id="py-pred-severity" class="badge">--</span>
+                            </div>
+                            <div class="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+                                <span
+                                    class="text-[10px] uppercase tracking-wider font-semibold block text-slate-400 mb-1">Signal
+                                    Quality</span>
+                                <span id="py-pred-quality" class="badge">
+                                    {% if audio_event %}{{ audio_event.quality }}{% else %}--{% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        {# Top 3 Breakdown Progress Bars Container #}
+                        <div class="space-y-2 pt-2 border-t border-slate-800" id="py-top3-container">
+                            <span class="text-xs font-bold text-slate-300 block">Top Prediction Confidence
+                                Breakdown</span>
+                            <div id="py-top3-bars" class="space-y-2">
+                                <p class="text-xs text-slate-500 italic">Processing classification breakdown...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# GTM TF.js Prediction Card #}
+                <div class="card p-5 space-y-4 shadow-xl" id="gtm-result-card">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-2.5 py-1 text-xs font-bold font-mono rounded-lg border"
+                                style="background:rgba(139,92,246,0.12);color:#c4b5fd;border-color:rgba(139,92,246,0.3);">JS</span>
+                            <span class="font-bold text-slate-100 text-sm">GTM Secondary Model (Browser)</span>
+                        </div>
+                        <span
+                            class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                            Client-Side TensorFlow.js
+                        </span>
+                    </div>
+
+                    <div class="flex flex-col items-center justify-center gap-3 py-6 px-4 text-center border-2 border-dashed rounded-xl"
+                        style="border-color:var(--color-border);background:rgba(20,20,28,0.4);">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-xs font-bold text-slate-200">GTM Browser Classification Ready</p>
+                            <p class="text-[11px] text-slate-400 max-w-xs leading-relaxed">
+                                GTM model evaluates audio entirely in-browser without server roundtrips. Open the event
+                                page to compare Python vs GTM side-by-side.
+                            </p>
+                        </div>
+                        <a id="gtm-event-link"
+                            href="{% if audio_event %}/audio/events/{{ audio_event.audio_id }}/{% else %}#{% endif %}"
+                            class="btn btn-sm btn-ghost hover:text-violet-300">
+                            Open Event Page for GTM Comparison &rarr;
+                        </a>
+                    </div>
+                </div>
+
+                {# Duplicate Notice #}
+                <div id="duplicate-notice" class="hidden p-4 border rounded-xl"
+                    style="background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.25);">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 shrink-0 mt-0.5 text-amber-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <div>
+                            <p class="text-xs font-bold text-amber-400 mb-0.5">Duplicate Content Detected</p>
+                            <p id="duplicate-notice-msg" class="text-xs text-slate-300 leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    #dropzone.drag-over {
+        border-color: var(--color-accent-start) !important;
+        background: rgba(124, 92, 255, 0.08) !important;
+    }
+
+    #dropzone.drag-over #dropzone-glow {
+        opacity: 1;
+    }
+
+    #dropzone.drag-over #dropzone-icon {
+        background: rgba(124, 92, 255, 0.22) !important;
+        border-color: rgba(124, 92, 255, 0.6) !important;
+        transform: scale(1.08);
+    }
+
+    #upload-submit-btn[disabled] {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+</style>
+
+<script>
+    (function () {
+        "use strict";
+        const dz = document.getElementById("dropzone"), fi = document.getElementById("id_audio_file"),
+            bb = document.getElementById("browse-btn"), cb = document.getElementById("clear-file-btn"),
+            fc = document.getElementById("file-chip"), cn = document.getElementById("file-chip-name"),
+            cs = document.getElementById("file-chip-size"), ml = document.getElementById("dropzone-main-label"),
+            sb = document.getElementById("upload-submit-btn"), sl = document.getElementById("submit-label"),
+            pw = document.getElementById("upload-progress-container"), pb = document.getElementById("progress-bar"),
+            pp = document.getElementById("progress-pct"), pl = document.getElementById("progress-label"),
+            il = document.getElementById("inference-loading"), ep = document.getElementById("upload-error-panel"),
+            ed = document.getElementById("upload-error-detail"), rp = document.getElementById("upload-result-panel"),
+            frm = document.getElementById("single-upload-form");
+
+        function fmt(b) { return b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(1) + " KB" : (b / 1048576).toFixed(1) + " MB"; }
+
+        function setFile(f) {
+            if (!f) return;
+            cn.textContent = f.name; cs.textContent = fmt(f.size);
+            fc.classList.remove("hidden"); fc.classList.add("flex");
+            ml.textContent = "Audio file ready for ingestion";
+            sb.removeAttribute("disabled"); sb.removeAttribute("aria-disabled");
+            ep.classList.add("hidden");
+
+            // Bind local object URL preview to audio player component if available
+            const playerAudio = document.getElementById("audio-elem-upload_result");
+            const playerFilename = document.getElementById("filename-upload_result");
+            const playerStatus = document.getElementById("status-badge-upload_result");
+            const playerContainer = document.getElementById("audio-preview-container-upload_result");
+            if (playerAudio) {
+                const objectUrl = URL.createObjectURL(f);
+                playerAudio.src = objectUrl;
+                if (playerFilename) playerFilename.textContent = f.name;
+                if (playerStatus) {
+                    playerStatus.textContent = "Ready to Play";
+                    playerStatus.className = "px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0";
+                }
+                if (playerContainer) playerContainer.classList.remove("hidden");
+            }
+        }
+
+        function clearFile() {
+            fi.value = ""; fc.classList.add("hidden"); fc.classList.remove("flex");
+            ml.textContent = "Drag and drop your audio file here";
+            sb.setAttribute("disabled", ""); sb.setAttribute("aria-disabled", "true");
+            pw.classList.add("hidden"); ep.classList.add("hidden"); rp.classList.add("hidden");
+        }
+
+        if (bb) bb.addEventListener("click", () => fi.click());
+        if (cb) cb.addEventListener("click", e => { e.stopPropagation(); clearFile(); });
+        if (fi) fi.addEventListener("change", () => { if (fi.files && fi.files[0]) setFile(fi.files[0]); });
+
+        if (dz) {
+            ["dragover", "dragenter"].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add("drag-over"); }));
+            ["dragleave", "dragend", "drop"].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove("drag-over"); }));
+            dz.addEventListener("drop", e => {
+                const f = e.dataTransfer?.files?.[0];
+                if (f) { const dt = new DataTransfer(); dt.items.add(f); fi.files = dt.files; setFile(f); }
+            });
+            dz.addEventListener("click", e => {
+                if (!e.target.closest("#file-chip") && !e.target.closest("#browse-btn")) fi.click();
+            });
+        }
+
+        function setProgress(pct, label) {
+            if (pb) pb.style.width = pct + "%";
+            if (pp) pp.textContent = pct + "%";
+            if (pl && label) pl.querySelector("span:last-child").textContent = label;
+        }
+
+        function showError(msg) {
+            if (ep) ep.classList.remove("hidden");
+            if (ed) ed.textContent = msg || "Unknown error occurred during ingestion.";
+            if (rp) rp.classList.add("hidden");
+            if (pw) pw.classList.add("hidden");
+            if (il) il.classList.add("hidden");
+            if (sb) { sb.removeAttribute("disabled"); sb.removeAttribute("aria-disabled"); }
+            if (sl) sl.textContent = "Validate & Ingest";
+        }
+
+        function populateResult(data) {
+            const id = data.audio_id || "", pred = data.prediction || {}, meta = data.metadata || {};
+
+            const resAudioId = document.getElementById("result-audio-id");
+            if (resAudioId) resAudioId.textContent = id ? "Audio ID: " + id : "";
+
+            const evLink = "/audio/events/" + id + "/";
+            const lnk = document.getElementById("result-event-link");
+            if (lnk) { lnk.href = evLink; lnk.style.display = ""; }
+
+            const gLink = document.getElementById("gtm-event-link");
+            if (gLink) { gLink.href = evLink; gLink.classList.remove("hidden"); }
+
+            // Populate Metadata Card fields if present
+            const metaCard = document.querySelector(".result-meta-init");
+            if (metaCard && meta.filename) {
+                const fields = metaCard.querySelectorAll("span.font-bold");
+                if (fields.length >= 7) {
+                    fields[0].textContent = meta.filename || "--";
+                    fields[1].textContent = (meta.format || "--").toUpperCase();
+                    fields[2].textContent = meta.duration ? meta.duration + " s" : "--";
+                    fields[3].textContent = meta.sampling_rate ? meta.sampling_rate + " Hz" : "--";
+                    fields[4].textContent = meta.channels == 1 ? "1 (Mono)" : meta.channels == 2 ? "2 (Stereo)" : (meta.channels ? meta.channels + " channels" : "--");
+                    fields[5].textContent = meta.bit_depth ? meta.bit_depth + " bit" : "--";
+                    fields[6].textContent = meta.file_size ? meta.file_size + " bytes" : "--";
+                }
+            }
+
+            if (pred.predicted_class) {
+                const pyCard = document.getElementById("python-result-card");
+                if (pyCard) pyCard.style.display = "";
+
+                const pyClass = document.getElementById("py-pred-class");
+                if (pyClass) pyClass.textContent = pred.predicted_class;
+
+                const pyConf = document.getElementById("py-pred-conf");
+                if (pyConf) pyConf.textContent = typeof pred.confidence === "number" ? (pred.confidence * 100).toFixed(1) + "%" : "--";
+
+                const pySev = document.getElementById("py-pred-severity");
+                if (pySev) {
+                    pySev.textContent = pred.severity || "Normal";
+                    pySev.className = "badge badge-severity-" + (pred.severity || "info").toLowerCase();
+                }
+
+                const pyQual = document.getElementById("py-pred-quality");
+                if (pyQual) {
+                    pyQual.textContent = pred.quality || "Good";
+                    pyQual.className = "badge badge-quality-" + (pred.quality || "good").toLowerCase();
+                }
+
+                const pyVer = document.getElementById("py-pred-ver");
+                if (pyVer) pyVer.textContent = pred.model_version || "1.0.0";
+
+                // Top 3 progress bars
+                const top3Bars = document.getElementById("py-top3-bars");
+                if (top3Bars && Array.isArray(pred.top3) && pred.top3.length > 0) {
+                    top3Bars.innerHTML = pred.top3.map(item => `
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-medium text-slate-300 truncate max-w-[180px]">${item.category}</span>
+                        <span class="font-mono text-cyan-400 text-[11px] font-bold">${item.percentage}%</span>
+                    </div>
+                    <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden p-0.5 border border-slate-700/50">
+                        <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500" style="width:${item.percentage}%"></div>
+                    </div>
+                </div>
+            `).join("");
+                }
+            }
+
+            if (data.duplicate) {
+                const dn = document.getElementById("duplicate-notice");
+                if (dn) {
+                    dn.classList.remove("hidden");
+                    document.getElementById("duplicate-notice-msg").textContent =
+                        "Content matches existing event " + id + ". Returned existing audio event record.";
+                }
+            }
+
+            if (rp) {
+                rp.classList.remove("hidden");
+                rp.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }
+
+        if (frm) {
+            frm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                const f = fi.files ? fi.files[0] : null;
+                if (!f) return;
+
+                if (ep) ep.classList.add("hidden");
+                if (rp) rp.classList.add("hidden");
+                if (pw) pw.classList.remove("hidden");
+                if (il) il.classList.add("hidden");
+
+                setProgress(0, "Uploading audio...");
+                if (sb) { sb.setAttribute("disabled", ""); sb.setAttribute("aria-disabled", "true"); }
+                if (sl) sl.textContent = "Ingesting...";
+
+                const fd = new FormData();
+                fd.append("audio_file", f);
+                const tokInput = frm.querySelector("[name=csrfmiddlewaretoken]");
+                const tok = tokInput ? tokInput.value : "";
+
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/audio/upload/api/");
+                xhr.setRequestHeader("X-CSRFToken", tok);
+
+                xhr.upload.addEventListener("progress", ev => {
+                    if (ev.lengthComputable) {
+                        const pct = Math.round(ev.loaded / ev.total * 85);
+                        setProgress(pct, "Uploading clip...");
+                    }
+                });
+
+                xhr.upload.addEventListener("load", () => {
+                    setProgress(90, "Running ML inference...");
+                    if (il) il.classList.remove("hidden");
+                });
+
+                xhr.addEventListener("load", () => {
+                    if (il) il.classList.add("hidden");
+                    setProgress(100, "Complete");
+                    setTimeout(() => { if (pw) pw.classList.add("hidden"); }, 700);
+
+                    if (sb) { sb.removeAttribute("disabled"); sb.removeAttribute("aria-disabled"); }
+                    if (sl) sl.textContent = "Validate & Ingest";
+
+                    let data;
+                    try { data = JSON.parse(xhr.responseText); }
+                    catch { showError("Server returned an invalid JSON response."); return; }
+
+                    if (xhr.status >= 400 || data.accepted === false) {
+                        showError(data.reason || "Validation rejected by SonicSentinel engine.");
+                        return;
+                    }
+                    populateResult(data);
+                });
+
+                xhr.addEventListener("error", () => {
+                    if (il) il.classList.add("hidden");
+                    showError("Network connection failure — unable to contact inference server.");
+                    if (sb) { sb.removeAttribute("disabled"); sb.removeAttribute("aria-disabled"); }
+                    if (sl) sl.textContent = "Validate & Ingest";
+                });
+
+                xhr.send(fd);
+            });
+        }
+    })();
+</script>
+{% endblock %}

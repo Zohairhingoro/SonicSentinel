@@ -1,0 +1,37 @@
+{# Reusable Token-Driven Glass Card Component Partial #}
+<div {% if id %}id="{{ id }}" {% endif %}
+  class="card card-glass {% if interactive %}card-interactive{% endif %} {{ extra_classes|default:'' }}">
+  {% if title or subtitle or header_icon or header_action %}
+  <div class="card-header">
+    <div class="flex items-center gap-2.5">
+      {% if header_icon %}
+      <div
+        class="w-8 h-8 rounded-lg bg-[rgba(124,92,255,0.12)] border border-[rgba(124,92,255,0.25)] flex items-center justify-center text-accentEnd shrink-0">
+        {{ header_icon|safe }}
+      </div>
+      {% endif %}
+      <div>
+        {% if title %}
+        <h3 class="card-title">{{ title }}</h3>
+        {% endif %}
+        {% if subtitle %}
+        <p class="card-subtitle">{{ subtitle }}</p>
+        {% endif %}
+      </div>
+    </div>
+    {% if header_action %}
+    <div>{{ header_action|safe }}</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="card-body">
+    {% if content %}{{ content|safe }}{% endif %}
+  </div>
+
+  {% if footer_content %}
+  <div class="card-footer">
+    {{ footer_content|safe }}
+  </div>
+  {% endif %}
+</div>

@@ -1,0 +1,211 @@
+{% extends "app_base.html" %}
+
+{% block title %}Admin Overview & Summary Analytics — SonicSentinel AI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Admin Dashboard Header Banner -->
+    <div
+        class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+        <div class="absolute -right-20 -top-20 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none">
+        </div>
+        <div class="absolute -left-20 -bottom-20 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none">
+        </div>
+
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-inner">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-100">Administrator Console Dashboard</h2>
+                </div>
+                <p class="text-xs text-slate-400">
+                    System-wide acoustic event overview, critical detection metrics, and model consistency monitoring.
+                </p>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <a href="{% url 'dashboard:analytics_charts' %}" class="btn btn-primary btn-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                    </svg>
+                    <span>Analytics Charts</span>
+                </a>
+                <a href="{% url 'dashboard:analytics' %}" class="btn btn-secondary btn-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    </svg>
+                    <span>Full Analytics Hub</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Summary Stat Cards -->
+    {% include "components/admin_summary_stat_cards.html" with summary_stats=summary_stats %}
+
+    <!-- Active Alerts Polling Widget -->
+    {% include "components/active_alerts_widget.html" %}
+
+    <!-- Detection Trends Chart Card -->
+    <div class="card card-glass p-6 space-y-4" id="chart-detection-trends-card">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2">
+                <div
+                    class="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-200">Detection Trends (Last 30 Days)</h3>
+                    <p class="text-[11px] text-slate-400">Daily sound event classification counts per category over
+                        time.</p>
+                </div>
+            </div>
+            <span
+                class="text-[10px] uppercase tracking-widest font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md">Daily
+                Buckets &middot; Line Chart</span>
+        </div>
+        <div class="relative h-80">
+            <canvas id="chart-detection-trends" aria-label="Detection Trends Chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Event Timeline Stream -->
+    {% include "components/timeline.html" with page_obj=events_page title="System Sound Detections Timeline" %}
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var rawJson = '{{ detection_trends_json|escapejs }}';
+        if (!rawJson) return;
+        try {
+            var rawTrends = JSON.parse(rawJson);
+        } catch (e) {
+            return;
+        }
+        if (!rawTrends || !rawTrends.dates || !rawTrends.dates.length) return;
+
+        var ctx = document.getElementById("chart-detection-trends");
+        if (!ctx) return;
+
+        var categoryColors = {
+            "Machinery Fault": { border: "rgba(251, 146, 60, 1)", bg: "rgba(251, 146, 60, 0.1)" },
+            "Glass Breaking": { border: "rgba(248, 113, 113, 1)", bg: "rgba(248, 113, 113, 0.1)" },
+            "Alarm or Siren": { border: "rgba(250, 204, 21, 1)", bg: "rgba(250, 204, 21, 0.1)" },
+            "Vehicle Horn": { border: "rgba(52, 211, 153, 1)", bg: "rgba(52, 211, 153, 0.1)" },
+            "Animal Sound": { border: "rgba(167, 139, 250, 1)", bg: "rgba(167, 139, 250, 0.1)" },
+            "Gunshot": { border: "rgba(239, 68, 68, 1)", bg: "rgba(239, 68, 68, 0.1)" },
+            "Panic Scream": { border: "rgba(236, 72, 153, 1)", bg: "rgba(236, 72, 153, 0.1)" },
+            "Aggression or Violent Conflict": { border: "rgba(249, 115, 22, 1)", bg: "rgba(249, 115, 22, 0.1)" },
+            "Person Asking for Help": { border: "rgba(168, 85, 247, 1)", bg: "rgba(168, 85, 247, 0.1)" },
+            "Background Noise": { border: "rgba(148, 163, 184, 1)", bg: "rgba(148, 163, 184, 0.1)" }
+        };
+
+        var defaultColors = [
+            "rgba(34, 211, 238, 1)", "rgba(99, 102, 241, 1)", "rgba(52, 211, 153, 1)",
+            "rgba(251, 146, 60, 1)", "rgba(248, 113, 113, 1)", "rgba(167, 139, 250, 1)"
+        ];
+
+        var datasets = [];
+        var colorIdx = 0;
+        for (var cat in rawTrends.datasets) {
+            var counts = rawTrends.datasets[cat];
+            var total = counts.reduce(function (a, b) { return a + b; }, 0);
+
+            var col = categoryColors[cat] || {
+                border: defaultColors[colorIdx % defaultColors.length],
+                bg: "transparent"
+            };
+            colorIdx++;
+
+            datasets.push({
+                label: cat,
+                data: counts,
+                borderColor: col.border,
+                backgroundColor: col.bg,
+                borderWidth: 2,
+                tension: 0.3,
+                pointRadius: 2,
+                pointHoverRadius: 5,
+                fill: false,
+                hidden: total === 0 && datasets.length >= 4
+            });
+        }
+
+        new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: rawTrends.dates,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: {
+                            color: "#94a3b8",
+                            font: { family: "Inter, sans-serif", size: 11 },
+                            boxWidth: 12,
+                            padding: 12
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: "rgba(15, 23, 42, 0.95)",
+                        borderColor: "rgba(51, 65, 85, 0.8)",
+                        borderWidth: 1,
+                        titleColor: "#e2e8f0",
+                        bodyColor: "#94a3b8",
+                        padding: 10,
+                        cornerRadius: 10
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: "rgba(51, 65, 85, 0.3)" },
+                        ticks: {
+                            color: "#94a3b8",
+                            font: { family: "Inter, sans-serif", size: 10 },
+                            maxTicksLimit: 15
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: "rgba(51, 65, 85, 0.3)" },
+                        ticks: {
+                            color: "#94a3b8",
+                            font: { family: "Inter, sans-serif", size: 10 },
+                            precision: 0
+                        },
+                        title: {
+                            display: true,
+                            text: "Event Count",
+                            color: "#94a3b8",
+                            font: { size: 11, family: "Inter, sans-serif" }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

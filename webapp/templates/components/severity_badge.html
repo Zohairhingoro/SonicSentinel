@@ -1,0 +1,39 @@
+{# Reusable Token-Driven Severity Badge Component Partial #}
+{% with sev=severity|default:'Informational'|lower %}
+<span class="badge badge-severity 
+               {% if 'critical' in sev %}badge-severity-critical
+               {% elif 'high' in sev %}badge-severity-high
+               {% elif 'medium' in sev %}badge-severity-medium
+               {% elif 'low' in sev %}badge-severity-low
+               {% else %}badge-severity-informational{% endif %}
+               {{ extra_classes|default:'' }}" {% if id %}id="{{ id }}" {% endif %}>
+  {% if 'critical' in sev %}
+  <svg class="w-3 h-3 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" stroke-width="2" />
+    <line x1="12" y1="8" x2="12" y2="12" stroke-width="2" />
+    <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2.5" />
+  </svg>
+  {% elif 'high' in sev %}
+  <svg class="w-3 h-3 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+  </svg>
+  {% elif 'medium' in sev %}
+  <svg class="w-3 h-3 text-amber-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+  {% elif 'low' in sev %}
+  <svg class="w-3 h-3 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+  {% else %}
+  <svg class="w-3 h-3 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+  {% endif %}
+  <span>{{ severity|default:'Informational' }}</span>
+</span>
+{% endwith %}

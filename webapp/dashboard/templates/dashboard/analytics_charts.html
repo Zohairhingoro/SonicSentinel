@@ -1,0 +1,502 @@
+{% extends "app_base.html" %}
+
+{% block title %}Admin Analytics Charts — SonicSentinel AI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Page Header -->
+    <div
+        class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-violet-950 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+        <div class="absolute -right-20 -top-20 w-72 h-72 bg-violet-500/10 rounded-full blur-3xl pointer-events-none">
+        </div>
+        <div class="absolute -left-20 -bottom-20 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none">
+        </div>
+
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-400 shadow-inner">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-100">Admin Analytics Charts</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Restricted to administrators &middot; Six metric charts
+                            &middot; Live DB data</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <a href="{% url 'dashboard:analytics' %}" id="analytics-charts-back-analytics"
+                    class="btn btn-secondary btn-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span>Analytics Hub</span>
+                </a>
+                <a href="{% url 'dashboard:admin' %}" id="analytics-charts-back-admin" class="btn btn-ghost btn-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Admin Console</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stat Cards -->
+    {% include "components/admin_summary_stat_cards.html" with summary_stats=summary_stats %}
+
+    <!-- Charts Grid — 6 charts, 2-column responsive layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="analytics-charts-grid">
+
+        <!-- Chart 1: Category Frequency — Horizontal Bar -->
+        <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-4"
+            id="chart-category-card">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                        </svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-200">Category Frequency</h3>
+                </div>
+                <span
+                    class="text-[10px] uppercase tracking-widest font-mono text-cyan-500 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-md">Horizontal
+                    Bar</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Event count per sound category across all ingested audio clips.</p>
+            <div class="relative h-72">
+                <canvas id="chart-category" aria-label="Category Frequency Chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Confidence Distribution — Vertical Bar -->
+        <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-4"
+            id="chart-confidence-card">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-200">Confidence Distribution</h3>
+                </div>
+                <span
+                    class="text-[10px] uppercase tracking-widest font-mono text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">Bar</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Python model predictions bucketed by confidence score range.</p>
+            <div class="relative h-72">
+                <canvas id="chart-confidence" aria-label="Confidence Distribution Chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 3: False Positive / Negative Counts — Doughnut + meta panel -->
+        <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-4"
+            id="chart-fpfn-card">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-rose-500/15 border border-rose-500/25 flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-200">False Positive / Negative Counts</h3>
+                </div>
+                <span
+                    class="text-[10px] uppercase tracking-widest font-mono text-rose-500 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md">Doughnut</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Reviewer overrides classified as false positives or false negatives.
+            </p>
+            <div class="flex items-center gap-6">
+                <div class="relative h-56 w-56 flex-shrink-0">
+                    <canvas id="chart-fpfn" aria-label="False Positive Negative Chart"></canvas>
+                </div>
+                <div class="space-y-3 text-xs flex-1">
+                    <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-0.5">
+                        <span class="text-slate-400 text-[10px] uppercase font-semibold tracking-wide block">Total
+                            Reviews</span>
+                        <span class="font-mono font-bold text-slate-100 text-xl">{{ fp_fn.total_reviews|default:0
+                            }}</span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-0.5">
+                        <span class="text-slate-400 text-[10px] uppercase font-semibold tracking-wide block">Total
+                            Overrides</span>
+                        <span class="font-mono font-bold text-amber-300 text-xl">{{ fp_fn.total_overrides|default:0
+                            }}</span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-0.5">
+                        <span class="text-slate-400 text-[10px] uppercase font-semibold tracking-wide block">Override
+                            Rate</span>
+                        <span class="font-mono font-bold text-cyan-300 text-xl">
+                            {% if fp_fn.override_rate %}{{ fp_fn.override_rate|floatformat:3 }}{% else %}0.000{% endif
+                            %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 4: Model Disagreement Rate — Doughnut by match status -->
+        <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-4"
+            id="chart-disagreement-card">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-200">Model Disagreement Rate</h3>
+                </div>
+                <span
+                    class="text-[10px] uppercase tracking-widest font-mono text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">Doughnut</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Python vs GTM match status breakdown across all comparison results.
+            </p>
+            <div class="flex items-center gap-6">
+                <div class="relative h-56 w-56 flex-shrink-0">
+                    <canvas id="chart-disagreement" aria-label="Model Disagreement Rate Chart"></canvas>
+                </div>
+                <div class="space-y-3 text-xs flex-1">
+                    <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-0.5">
+                        <span class="text-slate-400 text-[10px] uppercase font-semibold tracking-wide block">Total
+                            Comparisons</span>
+                        <span class="font-mono font-bold text-slate-100 text-xl">{{
+                            model_dis.total_comparisons|default:0 }}</span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-0.5">
+                        <span
+                            class="text-slate-400 text-[10px] uppercase font-semibold tracking-wide block">Disagreements</span>
+                        <span class="font-mono font-bold text-rose-400 text-xl">{{ model_dis.disagreements|default:0
+                            }}</span>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-0.5">
+                        <span
+                            class="text-slate-400 text-[10px] uppercase font-semibold tracking-wide block">Disagreement
+                            Rate</span>
+                        <span class="font-mono font-bold text-amber-300 text-xl">
+                            {% if model_dis.disagreement_rate %}{{ model_dis.disagreement_rate|floatformat:3 }}{% else
+                            %}0.000{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 5: Audio Quality Breakdown — Polar Area -->
+        <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-4"
+            id="chart-quality-card">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-200">Audio Quality Breakdown</h3>
+                </div>
+                <span
+                    class="text-[10px] uppercase tracking-widest font-mono text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">Polar
+                    Area</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Distribution of quality classifications: Good, Acceptable, Poor,
+                Unusable.</p>
+            <div class="relative h-72">
+                <canvas id="chart-quality" aria-label="Audio Quality Breakdown Chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 6: Alert Response Times — Dual-axis Bar -->
+        <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-4"
+            id="chart-alertrt-card">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-sky-500/15 border border-sky-500/25 flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-200">Alert Response Times</h3>
+                </div>
+                <span
+                    class="text-[10px] uppercase tracking-widest font-mono text-sky-500 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-md">Dual-Axis
+                    Bar</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Resolved vs active alert counts; right axis shows avg response in
+                minutes.</p>
+            <div class="relative h-56">
+                <canvas id="chart-alertrt" aria-label="Alert Response Times Chart"></canvas>
+            </div>
+            <div class="grid grid-cols-3 gap-3 pt-2 border-t border-slate-800">
+                <div class="text-center space-y-0.5">
+                    <p class="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">Avg (min)</p>
+                    <p class="font-mono font-bold text-sky-300 text-lg">{{ alert_rt.avg_response_minutes|default:0.0 }}
+                    </p>
+                </div>
+                <div class="text-center space-y-0.5">
+                    <p class="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">Resolved</p>
+                    <p class="font-mono font-bold text-emerald-400 text-lg">{{ alert_rt.resolved_count|default:0 }}</p>
+                </div>
+                <div class="text-center space-y-0.5">
+                    <p class="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">Active</p>
+                    <p class="font-mono font-bold text-amber-400 text-lg">{{ alert_rt.active_count|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- JSON data island — read by Chart.js initialisation below -->
+<script id="chart-data-src" type="application/json">{{ chart_data_json }}</script>
+
+<script>
+    (function () {
+        "use strict";
+
+        var RAW = JSON.parse(document.getElementById("chart-data-src").textContent);
+
+        var GRID_COLOR = "rgba(148,163,184,0.08)";
+        var TICK_COLOR = "rgba(148,163,184,0.6)";
+        var FONT_FAMILY = "'Inter','ui-sans-serif','system-ui',sans-serif";
+        var TOOLTIP_BASE = {
+            backgroundColor: "rgba(15,23,42,0.92)",
+            borderColor: "rgba(148,163,184,0.18)",
+            borderWidth: 1,
+            titleColor: "#e2e8f0",
+            bodyColor: "#94a3b8",
+            titleFont: { family: FONT_FAMILY, size: 12, weight: "700" },
+            bodyFont: { family: FONT_FAMILY, size: 11 },
+            padding: 10,
+            cornerRadius: 10,
+        };
+
+        function tickOpts() {
+            return { color: TICK_COLOR, font: { family: FONT_FAMILY, size: 11 } };
+        }
+        function gridOpts() { return { color: GRID_COLOR }; }
+        function legendOpts(pos) {
+            return {
+                position: pos || "bottom",
+                labels: { color: TICK_COLOR, font: { family: FONT_FAMILY, size: 11 }, boxWidth: 12, padding: 14 },
+            };
+        }
+
+        /* ── 1. Category Frequency — Horizontal Bar ── */
+        (function () {
+            var d = RAW.category_freq;
+            if (!d.labels.length) return;
+            var palette = [
+                "rgba(34,211,238,.75)", "rgba(99,102,241,.75)", "rgba(251,146,60,.75)",
+                "rgba(52,211,153,.75)", "rgba(248,113,113,.75)", "rgba(167,139,250,.75)",
+                "rgba(250,204,21,.75)", "rgba(129,140,248,.75)", "rgba(34,197,94,.75)", "rgba(236,72,153,.75)",
+            ];
+            new Chart(document.getElementById("chart-category"), {
+                type: "bar",
+                data: {
+                    labels: d.labels,
+                    datasets: [{
+                        label: "Events",
+                        data: d.values,
+                        backgroundColor: d.labels.map(function (_, i) { return palette[i % palette.length]; }),
+                        borderColor: d.labels.map(function (_, i) { return palette[i % palette.length].replace(".75", "1"); }),
+                        borderWidth: 1, borderRadius: 5,
+                    }],
+                },
+                options: {
+                    indexAxis: "y",
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: TOOLTIP_BASE },
+                    scales: {
+                        x: { grid: gridOpts(), ticks: tickOpts() },
+                        y: { grid: { display: false }, ticks: { color: TICK_COLOR, font: { family: FONT_FAMILY, size: 10 } } },
+                    },
+                },
+            });
+        }());
+
+        /* ── 2. Confidence Distribution — Vertical Bar ── */
+        (function () {
+            var d = RAW.confidence_dist;
+            new Chart(document.getElementById("chart-confidence"), {
+                type: "bar",
+                data: {
+                    labels: d.labels,
+                    datasets: [{
+                        label: "Predictions",
+                        data: d.values,
+                        backgroundColor: ["rgba(248,113,113,.75)", "rgba(251,191,36,.75)", "rgba(34,211,238,.75)", "rgba(52,211,153,.75)"],
+                        borderColor: ["rgba(248,113,113,1)", "rgba(251,191,36,1)", "rgba(34,211,238,1)", "rgba(52,211,153,1)"],
+                        borderWidth: 1, borderRadius: 6,
+                    }],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: TOOLTIP_BASE },
+                    scales: {
+                        x: { grid: gridOpts(), ticks: tickOpts() },
+                        y: { grid: gridOpts(), ticks: tickOpts() },
+                    },
+                },
+            });
+        }());
+
+        /* ── 3. False Positive / Negative — Doughnut ── */
+        (function () {
+            var d = RAW.fp_fn;
+            var hasData = d.values.some(function (v) { return v > 0; });
+            new Chart(document.getElementById("chart-fpfn"), {
+                type: "doughnut",
+                data: {
+                    labels: hasData ? d.labels : ["No Overrides"],
+                    datasets: [{
+                        data: hasData ? d.values : [1],
+                        backgroundColor: hasData ? ["rgba(248,113,113,.80)", "rgba(251,146,60,.80)"] : ["rgba(51,65,85,.60)"],
+                        borderColor: hasData ? ["rgba(248,113,113,1)", "rgba(251,146,60,1)"] : ["rgba(71,85,105,.8)"],
+                        borderWidth: 2, hoverOffset: 8,
+                    }],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: "68%",
+                    plugins: { legend: legendOpts("bottom"), tooltip: TOOLTIP_BASE },
+                },
+            });
+        }());
+
+        /* ── 4. Model Disagreement Rate — Doughnut by status ── */
+        (function () {
+            var d = RAW.model_disagreement;
+            var hasData = d.values.some(function (v) { return v > 0; });
+            var colorMap = {
+                "acceptable_match": "rgba(52,211,153,.80)",
+                "weak_match": "rgba(250,204,21,.80)",
+                "model_disagreement": "rgba(248,113,113,.80)",
+                "uncertain_result": "rgba(148,163,184,.60)",
+            };
+            var borderMap = {
+                "acceptable_match": "rgba(52,211,153,1)",
+                "weak_match": "rgba(250,204,21,1)",
+                "model_disagreement": "rgba(248,113,113,1)",
+                "uncertain_result": "rgba(148,163,184,.9)",
+            };
+            new Chart(document.getElementById("chart-disagreement"), {
+                type: "doughnut",
+                data: {
+                    labels: hasData ? d.labels : ["No Comparisons"],
+                    datasets: [{
+                        data: hasData ? d.values : [1],
+                        backgroundColor: hasData ? d.labels.map(function (l) { return colorMap[l] || "rgba(99,102,241,.75)"; }) : ["rgba(51,65,85,.60)"],
+                        borderColor: hasData ? d.labels.map(function (l) { return borderMap[l] || "rgba(99,102,241,1)"; }) : ["rgba(71,85,105,.8)"],
+                        borderWidth: 2, hoverOffset: 8,
+                    }],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: "68%",
+                    plugins: { legend: legendOpts("bottom"), tooltip: TOOLTIP_BASE },
+                },
+            });
+        }());
+
+        /* ── 5. Audio Quality Breakdown — Polar Area ── */
+        (function () {
+            var d = RAW.audio_quality;
+            new Chart(document.getElementById("chart-quality"), {
+                type: "polarArea",
+                data: {
+                    labels: d.labels,
+                    datasets: [{
+                        data: d.values,
+                        backgroundColor: ["rgba(52,211,153,.65)", "rgba(34,211,238,.65)", "rgba(251,146,60,.65)", "rgba(248,113,113,.65)"],
+                        borderColor: ["rgba(52,211,153,1)", "rgba(34,211,238,1)", "rgba(251,146,60,1)", "rgba(248,113,113,1)"],
+                        borderWidth: 1.5,
+                    }],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: legendOpts("right"), tooltip: TOOLTIP_BASE },
+                    scales: {
+                        r: {
+                            grid: gridOpts(),
+                            ticks: { color: TICK_COLOR, backdropColor: "transparent", font: { family: FONT_FAMILY, size: 10 } },
+                        },
+                    },
+                },
+            });
+        }());
+
+        /* ── 6. Alert Response Times — Dual-axis Bar ── */
+        (function () {
+            var d = RAW.alert_response;
+            new Chart(document.getElementById("chart-alertrt"), {
+                type: "bar",
+                data: {
+                    labels: ["Resolved", "Active (Unresolved)"],
+                    datasets: [
+                        {
+                            label: "Alert Count",
+                            data: [d.resolved, d.active],
+                            backgroundColor: ["rgba(52,211,153,.75)", "rgba(251,191,36,.75)"],
+                            borderColor: ["rgba(52,211,153,1)", "rgba(251,191,36,1)"],
+                            borderWidth: 1, borderRadius: 6,
+                            yAxisID: "yCount",
+                        },
+                        {
+                            label: "Avg Response (min)",
+                            data: [d.avg_minutes, null],
+                            backgroundColor: ["rgba(56,189,248,.65)"],
+                            borderColor: ["rgba(56,189,248,1)"],
+                            borderWidth: 1, borderRadius: 6,
+                            yAxisID: "yTime",
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: legendOpts("bottom"), tooltip: TOOLTIP_BASE },
+                    scales: {
+                        yCount: {
+                            type: "linear", position: "left",
+                            grid: gridOpts(), ticks: tickOpts(),
+                            title: { display: true, text: "Alert Count", color: TICK_COLOR, font: { size: 10, family: FONT_FAMILY } },
+                        },
+                        yTime: {
+                            type: "linear", position: "right",
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: "rgba(56,189,248,.8)", font: { family: FONT_FAMILY, size: 11 } },
+                            title: { display: true, text: "Avg Response (min)", color: "rgba(56,189,248,.8)", font: { size: 10, family: FONT_FAMILY } },
+                        },
+                        x: { grid: { display: false }, ticks: tickOpts() },
+                    },
+                },
+            });
+        }());
+
+    }());
+</script>
+
+{% endblock %}

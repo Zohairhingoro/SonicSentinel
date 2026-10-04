@@ -1,0 +1,271 @@
+{% extends "app_base.html" %}
+
+{% block title %}Review Event {{ audio_event.audio_id }} — SonicSentinel AI{% endblock %}
+
+{% block content %}
+<div class="space-y-8 font-sans text-slate-100">
+
+  {# ── Header Card ── #}
+  <div
+    class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+    <div class="absolute -right-20 -top-20 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-20 -bottom-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center space-x-3">
+            <a href="{% url 'reviews:queue' %}"
+              class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 transition-all shadow-md group"
+              title="Return to Manual Review Queue">
+              <svg class="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </a>
+            <div
+              class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-inner">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-2xl font-bold text-slate-100 flex items-center gap-2">
+                <span>Event Review:</span>
+                <span class="font-mono text-cyan-400">{{ audio_event.audio_id }}</span>
+              </h2>
+              <p class="text-xs text-slate-400">
+                Uploaded {{ audio_event.uploaded_at|date:"Y-m-d H:i:s" }}
+                {% if audio_event.uploaded_by %}&middot; By {{ audio_event.uploaded_by.username }}{% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {# Badges Row #}
+        <div class="flex flex-wrap items-center gap-2">
+          {# Event Status #}
+          <span class="px-3 py-1.5 rounded-xl text-xs font-semibold border shadow-md
+            {% if audio_event.status == 'Reviewed' %}
+              bg-emerald-500/20 text-emerald-300 border-emerald-500/40
+            {% elif audio_event.status == 'Manual Review' %}
+              bg-amber-500/20 text-amber-300 border-amber-500/40
+            {% else %}
+              bg-cyan-500/20 text-cyan-300 border-cyan-500/40
+            {% endif %}">
+            Status: {{ audio_event.status }}
+          </span>
+
+          {# Severity #}
+          <span class="px-3 py-1.5 rounded-xl text-xs font-semibold border shadow-md
+            {% if audio_event.severity == 'Critical' %}
+              bg-rose-500/20 text-rose-300 border-rose-500/40
+            {% elif audio_event.severity == 'High' %}
+              bg-orange-500/20 text-orange-300 border-orange-500/40
+            {% elif audio_event.severity == 'Medium' %}
+              bg-amber-500/20 text-amber-300 border-amber-500/40
+            {% else %}
+              bg-slate-800 text-slate-300 border-slate-700
+            {% endif %}">
+            Severity: {{ audio_event.severity }}
+          </span>
+
+          {# Quality #}
+          <span
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold border bg-slate-800 text-slate-300 border-slate-700">
+            Quality: {{ audio_event.quality }}
+          </span>
+        </div>
+      </div>
+
+      {# Metadata Quick Strip #}
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-3 border-t border-slate-800/80 text-xs">
+        <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Filename</span>
+          <span class="font-mono text-slate-200 font-medium truncate block" title="{{ audio_event.filename }}">{{
+            audio_event.filename }}</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Format / Rate</span>
+          <span class="font-mono text-slate-200 font-medium truncate block">{{ audio_event.format }} &middot; {{
+            audio_event.sampling_rate }} Hz</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Duration</span>
+          <span class="font-mono text-slate-200 font-medium truncate block">{{ audio_event.duration|floatformat:2
+            }}s</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">File Size</span>
+          <span class="font-mono text-slate-200 font-medium truncate block">{{ audio_event.file_size }} B</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Current Category</span>
+          <span class="font-bold text-cyan-300 truncate block">{{ audio_event.category }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── SECTION 1: Audio Player & Visualization (FE-6) ── #}
+  <div class="space-y-4">
+    <div class="flex items-center space-x-2">
+      <div class="w-3 h-3 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50"></div>
+      <h3 class="text-lg font-bold text-slate-100">1. Audio Playback & Signal Analysis</h3>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {# FE-6 Audio Player #}
+      <div>
+        {% include "components/audio_preview.html" with event=audio_event id_suffix="review_detail" %}
+      </div>
+
+      {# FE-6 Waveform & Spectrogram #}
+      <div>
+        {% include "components/waveform_spectrogram.html" with event=audio_event id_suffix="review_detail" %}
+      </div>
+    </div>
+  </div>
+
+  {# ── SECTION 2: Model Prediction Comparison (FE-10) ── #}
+  <div class="space-y-4">
+    <div class="flex items-center space-x-2">
+      <div class="w-3 h-3 rounded-full bg-indigo-400 shadow-sm shadow-indigo-400/50"></div>
+      <h3 class="text-lg font-bold text-slate-100">2. Independent Model Output Comparison</h3>
+    </div>
+
+    {% if comparison %}
+    {% include "components/model_comparison.html" with comparison=comparison %}
+    {% else %}
+    <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 text-center text-xs text-slate-400">
+      No comparative model analysis results available for this audio event.
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── SECTION 3: Reviewer Decision Form (FE-12) ── #}
+  <div class="space-y-4">
+    <div class="flex items-center space-x-2">
+      <div class="w-3 h-3 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></div>
+      <h3 class="text-lg font-bold text-slate-100">3. Expert Reviewer Decision & Override</h3>
+    </div>
+
+    <div
+      class="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+      <form method="post" action="" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {# Category Selection Dropdown #}
+          <div class="space-y-2 lg:col-span-1">
+            <label for="id_decision" class="block text-xs font-bold text-slate-200 uppercase tracking-wider">
+              Confirmed / Corrected Sound Category <span class="text-rose-400">*</span>
+            </label>
+            <p class="text-[11px] text-slate-400">
+              Select the final ground-truth sound classification from the 10 mandatory categories.
+            </p>
+            <select id="id_decision" name="decision" required class="form-select font-semibold text-cyan-300">
+              {% for cat in categories %}
+              <option value="{{ cat }}" {% if cat==audio_event.category %}selected{% endif %}>
+                {{ cat }} {% if cat == audio_event.category %}(Current Detected){% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          {# Recommended Action Input #}
+          <div class="space-y-2 lg:col-span-2">
+            <label for="id_recommended_action" class="form-label font-bold uppercase tracking-wider">
+              Recommended Follow-Up Action
+            </label>
+            <p class="text-[11px] text-slate-400">
+              Specify operational next steps (e.g. "Dispatch maintenance team to inspect pump fault", "No action
+              required").
+            </p>
+            <input type="text" id="id_recommended_action" name="recommended_action"
+              placeholder="Enter recommended action or operational directive..." class="form-control" />
+          </div>
+
+        </div>
+
+        {# Comment Textarea #}
+        <div class="space-y-2">
+          <label for="id_comment" class="form-label font-bold uppercase tracking-wider">
+            Reviewer Rationale & Notes
+          </label>
+          <p class="text-[11px] text-slate-400">
+            Explain why the detected class was confirmed or overridden, noting audio quality anomalies or background
+            interference.
+          </p>
+          <textarea id="id_comment" name="comment" rows="3" placeholder="Provide details explaining your decision..."
+            class="form-textarea"></textarea>
+        </div>
+
+        {# Non-destructive Disclaimer & Submit #}
+        <div class="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center space-x-2 text-xs text-slate-400">
+            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span>Submitting preserves original model prediction rows in DB and logs an immutable ReviewRecord
+              override.</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Submit Review & Save Override</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {# ── SECTION 4: Review History Log ── #}
+  {% if review_history %}
+  <div class="space-y-4 pt-4">
+    <div class="flex items-center space-x-2">
+      <div class="w-3 h-3 rounded-full bg-slate-400"></div>
+      <h3 class="text-lg font-bold text-slate-100">4. Decision Audit History ({{ review_history|length }})</h3>
+    </div>
+
+    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl shadow-xl space-y-4">
+      <div class="divide-y divide-slate-800/80">
+        {% for rec in review_history %}
+        <div class="py-4 first:pt-0 last:pb-0 space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-slate-200">
+                {% if rec.reviewer %}{{ rec.reviewer.username }}{% else %}Anonymous Reviewer{% endif %}
+              </span>
+              <span class="px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 font-semibold">
+                {{ rec.decision }}
+              </span>
+            </div>
+            <span class="text-slate-400 font-mono">{{ rec.created_at|date:"Y-m-d H:i:s" }}</span>
+          </div>
+
+          {% if rec.recommended_action %}
+          <p class="text-xs text-slate-300">
+            <strong class="text-slate-400">Recommended Action:</strong> {{ rec.recommended_action }}
+          </p>
+          {% endif %}
+
+          {% if rec.comment %}
+          <p class="text-xs text-slate-400 italic bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+            "{{ rec.comment }}"
+          </p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{
+  "pythonVersion": "3.14",
+  "extraPaths": [
+    "webapp",
+    "ml_service"
+  ],
+  "stubPath": ".",
+  "useLibraryCodeForTypes": true,
+  "typeCheckingMode": "basic",
+  "reportMissingModuleSource": "none",
+  "reportMissingTypeStubs": "none",
+  "djangoSettings": "webapp.settings"
+}

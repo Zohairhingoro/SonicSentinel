@@ -1,0 +1,612 @@
+{
+  "info": {
+    "_postman_id": "c1f7a69b-3e54-4f81-a982-f8c6507a01d9",
+    "name": "SonicSentinel AI - Complete End-to-End Workflow",
+    "description": "Full end-to-end Postman collection exercising complete SonicSentinel flow against deployed Django (port 8000) and FastAPI ML microservice (port 8001):\n1. User registration & role-based assignment\n2. User authentication & session establishment\n3. Audio upload and ingestion validation\n4. Polling for ML prediction results & live session monitoring status\n5. Alert rule evaluation & generation for known critical audio samples\n6. Alert operational lifecycle (active polling, acknowledgment, dismissal)\n7. End-to-end manual review workflow (queue discovery, event inspection, review decision recording, non-destructive override)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "django_base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "fastapi_base_url",
+      "value": "http://localhost:8001",
+      "type": "string"
+    },
+    {
+      "key": "username",
+      "value": "e2e_operator",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "SecureOperator123!",
+      "type": "string"
+    },
+    {
+      "key": "reviewer_username",
+      "value": "e2e_reviewer",
+      "type": "string"
+    },
+    {
+      "key": "reviewer_password",
+      "value": "SecureReviewer123!",
+      "type": "string"
+    },
+    {
+      "key": "audio_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alert_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Authentication & Accounts",
+      "item": [
+        {
+          "name": "01.1 - Register Regular Operator",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{username}}",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "operator@sonicsentinel.ai",
+                  "type": "text"
+                },
+                {
+                  "key": "role",
+                  "value": "normal_user",
+                  "type": "text"
+                },
+                {
+                  "key": "password1",
+                  "value": "{{password}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password2",
+                  "value": "{{password}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{django_base_url}}/accounts/register/",
+              "host": ["{{django_base_url}}"],
+              "path": ["accounts", "register", ""]
+            },
+            "description": "Registers a new operator user account with the normal_user role."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Registration response received', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.2 - Register Audio Reviewer",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{reviewer_username}}",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "reviewer@sonicsentinel.ai",
+                  "type": "text"
+                },
+                {
+                  "key": "role",
+                  "value": "audio_reviewer",
+                  "type": "text"
+                },
+                {
+                  "key": "password1",
+                  "value": "{{reviewer_password}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password2",
+                  "value": "{{reviewer_password}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{django_base_url}}/accounts/register/",
+              "host": ["{{django_base_url}}"],
+              "path": ["accounts", "register", ""]
+            },
+            "description": "Registers a specialized audio reviewer account with the audio_reviewer role."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Reviewer registration response received', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.3 - Login as Operator",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{username}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{password}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{django_base_url}}/accounts/login/",
+              "host": ["{{django_base_url}}"],
+              "path": ["accounts", "login", ""]
+            },
+            "description": "Authenticates the operator user and establishes the Django session cookie."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login succeeds and redirects to dashboard', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - FastAPI ML Microservice",
+      "item": [
+        {
+          "name": "02.1 - ML Service Health / Swagger Docs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{fastapi_base_url}}/docs",
+              "host": ["{{fastapi_base_url}}"],
+              "path": ["docs"]
+            },
+            "description": "Sanity check verifying the FastAPI stateless ML microservice is online."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('FastAPI microservice responds with HTTP 200', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.2 - Direct ML Service Predict Contract",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "sample_audio/valid.wav",
+                  "description": "Sample WAV audio file for direct classification"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{fastapi_base_url}}/predict",
+              "host": ["{{fastapi_base_url}}"],
+              "path": ["predict"]
+            },
+            "description": "Direct call to FastAPI /predict asserting the response schema defined in AGENTS.md §1."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Prediction response conforms to AGENTS.md schema', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('predicted_class');",
+                  "    pm.expect(json).to.have.property('confidence');",
+                  "    pm.expect(json).to.have.property('top3');",
+                  "    pm.expect(json).to.have.property('quality');",
+                  "    pm.expect(json).to.have.property('waveform');",
+                  "    pm.expect(json).to.have.property('spectrogram');",
+                  "    pm.expect(json).to.have.property('model_version');",
+                  "    pm.expect(['Good', 'Acceptable', 'Poor', 'Unusable']).to.include(json.quality);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Audio Ingestion & Polling",
+      "item": [
+        {
+          "name": "03.1 - Upload Audio Event (Critical Sample)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "audio_file",
+                  "type": "file",
+                  "src": "sample_audio/valid.wav",
+                  "description": "Audio file uploaded for server-side validation and ML classification"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{django_base_url}}/audio/upload/",
+              "host": ["{{django_base_url}}"],
+              "path": ["audio", "upload", ""]
+            },
+            "description": "Upload audio clip. Stores AudioEvent, calls ML service, evaluates alert rules."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Audio upload accepted and processed', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.accepted).to.be.true;",
+                  "    pm.expect(json.audio_id).to.be.a('string');",
+                  "    pm.collectionVariables.set('audio_id', json.audio_id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "03.2 - Poll Live Session Status API",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{django_base_url}}/live/api/session-status/",
+              "host": ["{{django_base_url}}"],
+              "path": ["live", "api", "session-status", ""]
+            },
+            "description": "Polls session status used by live monitoring dashboard every 5s."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Session status API returns live prediction telemetry', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('event');",
+                  "    pm.expect(json).to.have.property('python_prediction');",
+                  "    pm.expect(json).to.have.property('comparison');",
+                  "    pm.expect(json).to.have.property('active_alerts');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "03.3 - Filter Events by Audio ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{django_base_url}}/audio/events/?search={{audio_id}}",
+              "host": ["{{django_base_url}}"],
+              "path": ["audio", "events", ""],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{audio_id}}"
+                }
+              ]
+            },
+            "description": "Verifies the newly uploaded AudioEvent is queryable in the event list."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Event search returns HTTP 200', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Critical Alerts Management",
+      "item": [
+        {
+          "name": "04.1 - Poll Active Alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{django_base_url}}/alerts/active/",
+              "host": ["{{django_base_url}}"],
+              "path": ["alerts", "active", ""]
+            },
+            "description": "Retrieves active unacknowledged sound event alerts for operator polling."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Active alerts endpoint returns array', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('alerts');",
+                  "    if (json.alerts.length > 0) {",
+                  "        pm.collectionVariables.set('alert_id', String(json.alerts[0].id));",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "04.2 - Acknowledge Active Alert",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{django_base_url}}/alerts/{{alert_id}}/acknowledge/",
+              "host": ["{{django_base_url}}"],
+              "path": ["alerts", "{{alert_id}}", "acknowledge", ""]
+            },
+            "description": "Operator acknowledges an active alert, updating status and creating audit log."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Alert acknowledged successfully', function () {",
+                  "    if (pm.collectionVariables.get('alert_id')) {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                  "        if (pm.response.code === 200) {",
+                  "            const json = pm.response.json();",
+                  "            pm.expect(json.success).to.be.true;",
+                  "        }",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Manual Review Flow",
+      "item": [
+        {
+          "name": "05.1 - Login as Audio Reviewer",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{reviewer_username}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{reviewer_password}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{django_base_url}}/accounts/login/",
+              "host": ["{{django_base_url}}"],
+              "path": ["accounts", "login", ""]
+            },
+            "description": "Authenticates as the audio reviewer to gain access to the manual review queue."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Reviewer login succeeds', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "05.2 - View Manual Review Queue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{django_base_url}}/reviews/queue/",
+              "host": ["{{django_base_url}}"],
+              "path": ["reviews", "queue", ""]
+            },
+            "description": "Renders the manual review queue listing events flagged for review."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Review queue page renders successfully', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "05.3 - Inspect Event Review Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{django_base_url}}/reviews/{{audio_id}}/",
+              "host": ["{{django_base_url}}"],
+              "path": ["reviews", "{{audio_id}}", ""]
+            },
+            "description": "Inspects audio player, model comparison metrics, and reviewer decision form."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Review detail page renders successfully', function () {",
+                  "    if (pm.collectionVariables.get('audio_id')) {",
+                  "        pm.expect(pm.response.code).to.equal(200);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "05.4 - Submit Manual Review Decision",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "decision",
+                  "value": "Panic Scream",
+                  "type": "text"
+                },
+                {
+                  "key": "comment",
+                  "value": "Postman E2E automated test: Human verification confirmed panic scream distress signal.",
+                  "type": "text"
+                },
+                {
+                  "key": "recommended_action",
+                  "value": "Dispatch security patrol immediately.",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{django_base_url}}/reviews/{{audio_id}}/",
+              "host": ["{{django_base_url}}"],
+              "path": ["reviews", "{{audio_id}}", ""]
+            },
+            "description": "Submits review decision: updates category, sets status to 'Reviewed', logs audit."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Review decision accepted and saved', function () {",
+                  "    if (pm.collectionVariables.get('audio_id')) {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

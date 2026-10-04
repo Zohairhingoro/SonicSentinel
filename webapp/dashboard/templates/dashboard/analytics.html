@@ -1,0 +1,186 @@
+{% extends "app_base.html" %}
+
+{% block title %}System Analytics & Reporting — SonicSentinel AI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Page Header Banner -->
+    <div
+        class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+        <div class="absolute -right-20 -top-20 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none">
+        </div>
+        <div class="absolute -left-20 -bottom-20 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none">
+        </div>
+
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-inner">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-100">Analytics & Performance Reports</h2>
+                </div>
+                <p class="text-xs text-slate-400">
+                    Category frequency, critical events, confidence distributions, model disagreement rate, and response
+                    times.
+                </p>
+            </div>
+
+            <!-- Export Buttons for Administrator -->
+            <div class="flex items-center space-x-2">
+                {% if is_admin %}
+                <a href="{% url 'dashboard:export' %}?{{ request.GET.urlencode }}&format=csv"
+                    id="analytics-export-csv-btn" title="Export current filtered results as CSV"
+                    class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/20 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Export CSV</span>
+                </a>
+
+                <a href="{% url 'dashboard:export' %}?{{ request.GET.urlencode }}&format=excel"
+                    id="analytics-export-excel-btn" title="Export current filtered results as Excel"
+                    class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 hover:text-emerald-300 text-xs font-semibold transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Export Excel</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Reusable Filter Form -->
+    {% include "components/event_filter_form.html" with form=form is_admin=is_admin
+    active_filter_count=active_filter_count %}
+
+    <!-- Summary Stat Cards -->
+    {% include "components/admin_summary_stat_cards.html" with summary_stats=analytics.admin_summary_stats %}
+
+    <!-- Key Metrics Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. Critical Events Summary -->
+        <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+                <span class="font-semibold uppercase tracking-wider">Critical Detections</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+            </div>
+            <div class="text-3xl font-extrabold text-rose-400">
+                {{ analytics.critical_event_frequency.total_critical|default:0 }}
+            </div>
+            <p class="text-[11px] text-slate-500">Total critical severity alerts raised</p>
+        </div>
+
+        <!-- 2. Model Disagreement Rate -->
+        <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+                <span class="font-semibold uppercase tracking-wider">Model Disagreement</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            </div>
+            <div class="text-3xl font-extrabold text-amber-300">
+                {{ analytics.model_disagreement.disagreements|default:0 }}
+            </div>
+            <p class="text-[11px] text-slate-500">
+                Rate: {{ analytics.model_disagreement.disagreement_rate|default:0.0 }} (Python vs GTM)
+            </p>
+        </div>
+
+        <!-- 3. Reviewer Override Rate -->
+        <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+                <span class="font-semibold uppercase tracking-wider">Review Overrides</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+            </div>
+            <div class="text-3xl font-extrabold text-cyan-300">
+                {{ analytics.false_positive_negative.total_overrides|default:0 }}
+            </div>
+            <p class="text-[11px] text-slate-500">
+                FP: {{ analytics.false_positive_negative.false_positives|default:0 }} | FN: {{
+                analytics.false_positive_negative.false_negatives|default:0 }}
+            </p>
+        </div>
+
+        <!-- 4. Avg Alert Response Time -->
+        <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+                <span class="font-semibold uppercase tracking-wider">Avg Response Time</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            </div>
+            <div class="text-3xl font-extrabold text-emerald-300">
+                {{ analytics.alert_response_time.avg_response_minutes|default:0.0 }} m
+            </div>
+            <p class="text-[11px] text-slate-500">
+                Resolved: {{ analytics.alert_response_time.resolved_count|default:0 }} alerts
+            </p>
+        </div>
+    </div>
+
+    <!-- Analytics Detail Breakdown Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Category Frequency List -->
+        <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-slate-200">Category Frequency Distribution</h3>
+                <span class="text-xs text-slate-400 font-mono">Top Categories</span>
+            </div>
+            <div class="space-y-2.5 text-xs">
+                {% for cat, count in analytics.category_frequency.items %}
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+                    <span class="font-medium text-slate-300">{{ cat }}</span>
+                    <span
+                        class="px-2.5 py-0.5 rounded-lg font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                        {{ count }}
+                    </span>
+                </div>
+                {% empty %}
+                <p class="text-slate-500 text-xs py-4 text-center">No categories recorded yet</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Audio Quality & Confidence Buckets -->
+        <div class="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-slate-200">Confidence Score & Quality Breakdown</h3>
+                <span class="text-xs text-slate-400 font-mono">Signal Metrics</span>
+            </div>
+            <div class="space-y-4 text-xs">
+                <div>
+                    <h4 class="text-slate-400 font-semibold mb-2 uppercase text-[10px]">Quality Classification</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {% for q, count in analytics.audio_quality_breakdown.items %}
+                        <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-center space-y-1">
+                            <span class="text-[10px] text-slate-400 font-medium uppercase block">{{ q }}</span>
+                            <span class="font-mono font-bold text-slate-200 block">{{ count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-slate-400 font-semibold mb-2 uppercase text-[10px]">Python Confidence Buckets</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {% for bucket, count in analytics.confidence_distribution.items %}
+                        <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-center space-y-1">
+                            <span class="text-[10px] text-slate-400 font-medium block">{{ bucket }}</span>
+                            <span class="font-mono font-bold text-cyan-400 block">{{ count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtered Timeline Stream -->
+    {% include "components/timeline.html" with page_obj=events_page title="Filtered Event Timeline Stream" %}
+</div>
+{% endblock %}

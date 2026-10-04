@@ -1,0 +1,171 @@
+{% extends "app_base.html" %}
+
+{% block title %}Alert Management Dashboard — SonicSentinel AI{% endblock %}
+
+{% block content %}
+<div class="space-y-8 font-sans text-slate-100">
+
+  {# ── Header Card ── #}
+  <div
+    class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+    <div class="absolute -right-20 -top-20 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-20 -bottom-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div class="flex items-center space-x-3">
+          <div
+            class="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-inner">
+            <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-slate-100">Alert Management Center</h2>
+        </div>
+        <p class="text-xs text-slate-400">
+          Real-time security & maintenance sound event alerts, escalation controls, and resolution history.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span
+          class="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold">
+          {{ active_count|default:0 }} Active Alerts
+        </span>
+      </div>
+    </div>
+  </div>
+
+  {# ── SECTION 1: Active Alerts Polling Widget ── #}
+  <div>
+    {% include "components/active_alerts_widget.html" %}
+  </div>
+
+  {# ── SECTION 2: All Alerts Log Table ── #}
+  <div class="space-y-4">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
+        <h3 class="text-lg font-bold text-slate-100">System Alert Log</h3>
+      </div>
+      <span class="text-xs text-slate-400">Showing latest alerts</span>
+    </div>
+
+    {% if alerts %}
+    <div class="overflow-hidden bg-slate-900/80 border border-slate-800/90 rounded-2xl shadow-xl backdrop-blur-md">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950/60 text-slate-400 font-semibold uppercase tracking-wider">
+              <th scope="col" class="py-3.5 px-4">Alert ID</th>
+              <th scope="col" class="py-3.5 px-4">Audio Event</th>
+              <th scope="col" class="py-3.5 px-4">Category</th>
+              <th scope="col" class="py-3.5 px-4">Severity</th>
+              <th scope="col" class="py-3.5 px-4">Status</th>
+              <th scope="col" class="py-3.5 px-4">Created At</th>
+              <th scope="col" class="py-3.5 px-4">Resolved By</th>
+              <th scope="col" class="py-3.5 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 text-slate-200">
+            {% for alert in alerts %}
+            <tr class="hover:bg-slate-800/40 transition-colors duration-150" id="table-alert-row-{{ alert.id }}">
+              <td class="py-3.5 px-4 font-mono text-cyan-400 font-semibold">
+                #{{ alert.id }}
+              </td>
+              <td class="py-3.5 px-4">
+                {% if alert.audio_event %}
+                <div class="font-semibold text-slate-100">{{ alert.audio_event.audio_id }}</div>
+                <div class="text-[11px] text-slate-400 font-mono truncate max-w-[150px]">{{ alert.audio_event.filename
+                  }}</div>
+                {% else %}
+                <span class="text-slate-500">N/A</span>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4 whitespace-nowrap">
+                {% if alert.audio_event %}
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-800 text-slate-200 border border-slate-700">
+                  {{ alert.audio_event.category }}
+                </span>
+                {% else %}
+                <span class="text-slate-500">N/A</span>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4 whitespace-nowrap">
+                {% include "components/severity_badge.html" with severity=alert.severity
+                id="table-alert-sev-"|add:alert.id %}
+              </td>
+              <td class="py-3.5 px-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border uppercase tracking-wider
+                      {% if alert.status == 'acknowledged' %}
+                        bg-emerald-500/10 text-emerald-300 border-emerald-500/30
+                      {% elif alert.status == 'dismissed' %}
+                        bg-slate-800 text-slate-400 border-slate-700
+                      {% elif alert.status == 'escalated' %}
+                        bg-rose-900/40 text-rose-300 border-rose-600/40
+                      {% else %}
+                        bg-amber-500/10 text-amber-300 border-amber-500/30
+                      {% endif %}" id="table-alert-status-{{ alert.id }}">
+                  {{ alert.status }}
+                </span>
+              </td>
+              <td class="py-3.5 px-4 text-slate-400 whitespace-nowrap font-mono text-[11px]">
+                {{ alert.created_at|date:"Y-m-d H:i:s" }}
+              </td>
+              <td class="py-3.5 px-4 text-slate-400 whitespace-nowrap">
+                {% if alert.resolved_by %}
+                <span class="font-medium text-slate-200">{{ alert.resolved_by.username }}</span>
+                {% else %}
+                <span class="text-slate-500">&mdash;</span>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                <div class="flex items-center justify-end space-x-1.5">
+                  {% if user.is_authenticated and user.is_staff_user or user.is_superuser %}
+                  {% if alert.status != 'acknowledged' and alert.status != 'dismissed' %}
+                  <button type="button" onclick="handleAlertAction({{ alert.id }}, 'acknowledge')"
+                    class="btn btn-secondary btn-sm">
+                    Ack
+                  </button>
+                  <button type="button" onclick="handleAlertAction({{ alert.id }}, 'dismiss')"
+                    class="btn btn-ghost btn-sm">
+                    Dismiss
+                  </button>
+                  {% endif %}
+                  {% if alert.status != 'escalated' %}
+                  <button type="button" onclick="handleAlertAction({{ alert.id }}, 'escalate')"
+                    class="btn btn-danger btn-sm">
+                    Escalate
+                  </button>
+                  {% endif %}
+                  {% endif %}
+                  {% if alert.audio_event %}
+                  <a href="/audio/events/?search={{ alert.audio_event.audio_id }}"
+                    class="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 transition-all"
+                    title="View Event Details">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% else %}
+    {% include "components/empty_state.html" with title="No Alert Records Found" subtitle="No security or maintenance
+    alerts have been generated yet in the primary database." %}
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

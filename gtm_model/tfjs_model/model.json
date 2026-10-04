@@ -1,0 +1,22 @@
+{
+  "format": "layers-model",
+  "generatedBy": "TensorFlow.js v4.17.0",
+  "convertedBy": "SonicSentinel GTM Exporter",
+  "modelTopology": {
+    "class_name": "Sequential",
+    "config": {
+      "name": "gtm_audio_net",
+      "layers": [
+        {
+          "class_name": "Dense",
+          "config": {
+            "units": 10,
+            "activation": "softmax",
+            "name": "output_dense"
+          }
+        }
+      ]
+    }
+  },
+  "weightsManifest": []
+}

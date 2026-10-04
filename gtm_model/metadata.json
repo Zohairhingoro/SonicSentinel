@@ -1,0 +1,18 @@
+{
+  "model_name": "SonicSentinel GTM Audio Classifier",
+  "version": "1.0.0",
+  "framework": "TensorFlow.js",
+  "sample_rate": 22050,
+  "categories": [
+    "Machinery Fault",
+    "Glass Breaking",
+    "Alarm or Siren",
+    "Vehicle Horn",
+    "Animal Sound",
+    "Gunshot",
+    "Panic Scream",
+    "Aggression or Violent Conflict",
+    "Person Asking for Help",
+    "Background Noise"
+  ]
+}

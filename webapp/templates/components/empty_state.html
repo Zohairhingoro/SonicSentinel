@@ -1,0 +1,35 @@
+{# Reusable Empty State Component Partial #}
+<div class="empty-state {{ extra_classes|default:'' }}" {% if id %}id="{{ id }}" {% endif %}>
+  <div class="empty-state-icon">
+    {% if icon %}
+    {{ icon|safe }}
+    {% else %}
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+    </svg>
+    {% endif %}
+  </div>
+
+  <h3 class="empty-state-title">{{ title|default:'No Records Found' }}</h3>
+
+  {% if subtitle %}
+  <p class="empty-state-sub">{{ subtitle }}</p>
+  {% endif %}
+
+  {% if action_url or action_onclick %}
+  <div class="pt-2">
+    {% if action_url %}
+    <a href="{{ action_url }}" class="btn btn-primary btn-sm">
+      {% if action_icon %}{{ action_icon|safe }}{% endif %}
+      <span>{{ action_text|default:'Get Started' }}</span>
+    </a>
+    {% elif action_onclick %}
+    <button type="button" onclick="{{ action_onclick }}" class="btn btn-primary btn-sm">
+      {% if action_icon %}{{ action_icon|safe }}{% endif %}
+      <span>{{ action_text|default:'Get Started' }}</span>
+    </button>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>

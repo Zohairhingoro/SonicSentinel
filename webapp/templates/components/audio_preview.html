@@ -1,0 +1,196 @@
+{% comment %}
+SonicSentinel AI — Audio Preview Component Partial
+Provides a custom HTML5 audio player with Play, Pause, Replay, Seek Bar, Volume/Mute,
+Playback Speed, and dynamic binding to local file inputs or remote audio URLs.
+
+Usage:
+{% include "components/audio_preview.html" with audio_url=... filename=... file_input_id="id_audio_file"
+id_suffix="upload_page" %}
+{% endcomment %}
+
+{% load static %}
+
+{% with c_id=id_suffix|default:"default" %}
+<div id="audio-preview-container-{{ c_id }}"
+    class="bg-slate-900/80 border border-slate-800/90 rounded-3xl p-5 backdrop-blur-xl shadow-xl space-y-4 font-sans text-slate-100 transition-all duration-300 {% if auto_hide and not audio_url and not event %}hidden{% endif %}">
+
+    <!-- Card Header -->
+    {% if show_header|default:True %}
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+        <div class="flex items-center space-x-3 min-w-0">
+            <div
+                class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="min-w-0">
+                <h4 class="text-sm font-bold text-slate-200 truncate">{{ title|default:"Audio Clip Preview" }}</h4>
+                <p id="filename-{{ c_id }}" class="text-xs text-slate-400 font-mono truncate">
+                    {% if filename %}{{ filename }}{% elif event and event.filename %}{{ event.filename }}{% else %}No
+                    clip loaded{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Status Badge -->
+        <span id="status-badge-{{ c_id }}"
+            class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase bg-slate-800 text-slate-400 border border-slate-700 shrink-0">
+            {% if audio_url or event and event.audio_file %}Ready{% else %}Waiting for File{% endif %}
+        </span>
+    </div>
+    {% endif %}
+
+    <!-- Hidden Native HTML5 Audio Element -->
+    <audio id="audio-elem-{{ c_id }}" preload="metadata" class="hidden">
+        {% if audio_url %}
+        <source src="{{ audio_url }}">
+        {% elif event and event.audio_file %}
+        <source src="{{ event.audio_file.url }}">
+        {% endif %}
+    </audio>
+
+    <!-- Main Playback & Seek Bar Controls -->
+    <div class="space-y-3">
+        <!-- Seek Bar Row with Timestamps -->
+        <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-xs font-mono text-slate-400">
+                <span id="current-time-{{ c_id }}" class="text-cyan-400 font-semibold">00:00</span>
+                <span id="duration-{{ c_id }}" class="text-slate-400">00:00</span>
+            </div>
+
+            <!-- Custom Seek Range Slider -->
+            <div class="relative flex items-center group">
+                <input id="seek-bar-{{ c_id }}" type="range" min="0" max="100" value="0" step="0.1"
+                    aria-label="Seek track position"
+                    class="audio-preview-slider w-full h-2 rounded-lg appearance-none bg-slate-800 cursor-pointer accent-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all shadow-inner" />
+            </div>
+        </div>
+
+        <!-- Action Control Buttons Row -->
+        <div class="flex items-center justify-between pt-1">
+            <!-- Left Group: Play/Pause & Replay -->
+            <div class="flex items-center space-x-2">
+                <!-- Big Play/Pause Toggle Button -->
+                <button id="play-btn-{{ c_id }}" type="button" aria-label="Play audio"
+                    class="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white flex items-center justify-center shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/35 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                    <!-- Play Icon (default) -->
+                    <svg id="play-icon-{{ c_id }}" class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <!-- Pause Icon (hidden by default) -->
+                    <svg id="pause-icon-{{ c_id }}" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                    </svg>
+                </button>
+
+                <!-- Replay Button -->
+                <button id="replay-btn-{{ c_id }}" type="button" title="Replay from start"
+                    aria-label="Replay audio from start"
+                    class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-slate-300 hover:text-cyan-400 border border-slate-700/70 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Right Group: Volume & Playback Speed -->
+            <div class="flex items-center space-x-3">
+                <!-- Volume Control -->
+                <div
+                    class="flex items-center space-x-2 bg-slate-950/60 border border-slate-800 px-2.5 py-1.5 rounded-xl">
+                    <button id="mute-btn-{{ c_id }}" type="button" title="Mute / Unmute" aria-label="Toggle mute"
+                        class="text-slate-400 hover:text-cyan-400 transition-colors focus:outline-none">
+                        <!-- Volume High -->
+                        <svg id="vol-icon-high-{{ c_id }}" class="w-4 h-4" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z" />
+                        </svg>
+                        <!-- Volume Low (hidden) -->
+                        <svg id="vol-icon-low-{{ c_id }}" class="w-4 h-4 hidden" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.536 8.464a5 5 0 010 7.072M11 5L6 9H2v6h4l5 4V5z" />
+                        </svg>
+                        <!-- Mute (hidden) -->
+                        <svg id="vol-icon-mute-{{ c_id }}" class="w-4 h-4 hidden text-rose-400" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                        </svg>
+                    </button>
+
+                    <!-- Volume Slider -->
+                    <input id="volume-bar-{{ c_id }}" type="range" min="0" max="1" step="0.05" value="1"
+                        aria-label="Volume level"
+                        class="audio-preview-slider w-16 h-1.5 rounded-lg appearance-none bg-slate-800 cursor-pointer accent-cyan-400 focus:outline-none" />
+                </div>
+
+                <!-- Playback Speed Dropdown -->
+                <div class="relative">
+                    <select id="speed-select-{{ c_id }}" aria-label="Playback speed"
+                        class="bg-slate-950/60 border border-slate-800 text-[11px] font-mono font-semibold text-slate-300 rounded-xl px-2 py-1.5 hover:border-slate-700 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 cursor-pointer">
+                        <option value="0.5">0.5x</option>
+                        <option value="1.0" selected>1.0x</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2.0">2.0x</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styling fixes for HTML5 range sliders -->
+<style>
+    .audio-preview-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #06b6d4;
+        cursor: pointer;
+        box-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+        transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+
+    .audio-preview-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.25);
+        background: #22d3ee;
+    }
+
+    .audio-preview-slider::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #06b6d4;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+    }
+</style>
+
+<!-- Load Audio Preview Controller JavaScript -->
+<script src="{% static 'js/audio_preview.js' %}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        if (typeof window.initAudioPreview === "function") {
+            window.initAudioPreview({
+                idSuffix: "{{ c_id }}",
+                fileInputId: "{{ file_input_id|default:'' }}",
+                audioUrl: "{% if audio_url %}{{ audio_url }}{% elif event and event.audio_file %}{{ event.audio_file.url }}{% endif %}",
+                filename: "{% if filename %}{{ filename }}{% elif event and event.filename %}{{ event.filename }}{% endif %}"
+            });
+        }
+    });
+</script>
+{% endwith %}
